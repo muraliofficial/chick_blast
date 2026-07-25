@@ -11,6 +11,7 @@ import LiveOrders from './admin/pages/LiveOrders'
 import OrderSummary from './admin/pages/OrderSummary'
 import Items from './admin/pages/Items'
 import ComboItems from './admin/pages/ComboItems'
+import NotFound from './website/pages/NotFound'
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
             <Route index element={<Products />} />
             <Route path="cart" element={<Cart />} />
             <Route path="order-status" element={<OrderStatus />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
 
           <Route path="/admin" element={<AdminLayout />}>
@@ -31,8 +33,6 @@ export default function App() {
             <Route path="items" element={<Items />} />
             <Route path="combo-items" element={<ComboItems />} />
           </Route>
-
-          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </CartProvider>
