@@ -1,9 +1,9 @@
 import { NavLink } from 'react-router-dom'
-import { ShoppingBag, ShoppingCart, ClipboardList } from 'lucide-react'
+import { UtensilsCrossed, ShoppingCart, ClipboardList } from 'lucide-react'
 import { useCart } from '../../shared/context/CartContext'
 
 const navItems = [
-  { to: '/', icon: ShoppingBag, label: 'Products' },
+  { to: '/', icon: UtensilsCrossed, label: 'Menu' },
   { to: '/cart', icon: ShoppingCart, label: 'Cart' },
   { to: '/order-status', icon: ClipboardList, label: 'Status' },
 ]
@@ -12,36 +12,34 @@ export default function BottomNav() {
   const { itemCount } = useCart()
 
   return (
-    <nav className="glass-nav">
+    <nav className="glass-nav md:hidden">
       {navItems.map(({ to, icon: Icon, label }) => (
         <NavLink
           key={to}
           to={to}
           end={to === '/'}
           className={({ isActive }) =>
-            `flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl text-xs font-medium transition-all duration-200 no-underline ${
+            `flex items-center gap-1.5 py-2 px-3.5 rounded-xl text-xs font-extrabold transition-all duration-200 no-underline whitespace-nowrap ${
               isActive
-                ? 'text-white'
-                : 'text-gray-500 hover:text-gray-800'
+                ? 'text-white shadow-md scale-[1.02]'
+                : 'text-gray-500 hover:text-gray-900'
             }`
           }
           style={({ isActive }) =>
             isActive
-              ? { background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary-dark))' }
+              ? { background: 'linear-gradient(135deg, var(--color-primary), #ea580c)' }
               : {}
           }
         >
-          <div className="relative">
-            <Icon size={22} />
+          <div className="relative flex items-center justify-center">
+            <Icon size={18} />
             {to === '/cart' && itemCount > 0 && (
-              <span className="absolute -top-1.5 -right-2 w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center text-white"
-                style={{ background: 'var(--color-primary)' }}
-              >
+              <span className="absolute -top-1.5 -right-2 w-4 h-4 rounded-full text-[9px] font-black flex items-center justify-center text-white bg-slate-950 border border-white">
                 {itemCount}
               </span>
             )}
           </div>
-          {label}
+          <span>{label}</span>
         </NavLink>
       ))}
     </nav>

@@ -8,6 +8,7 @@ import {
   Layers,
   Menu,
   X,
+  Globe,
 } from 'lucide-react'
 import logoImg from '../../assets/logo.png'
 import '../../styles/admin.css'
@@ -18,6 +19,7 @@ const navItems = [
   { to: '/admin/order-summary', icon: ClipboardList, label: 'Order Summary' },
   { to: '/admin/items', icon: Package, label: 'Items' },
   { to: '/admin/combo-items', icon: Layers, label: 'Combo Items' },
+  { to: '/', icon: Globe, label: 'Website', end: true },
 ]
 
 export default function AdminLayout() {

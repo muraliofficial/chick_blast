@@ -40,6 +40,7 @@
   @apply flex gap-2 overflow-x-auto pb-2 mb-6;
   scrollbar-width: none;
 }
+
 .category-filter::-webkit-scrollbar {
   display: none;
 }
@@ -50,11 +51,13 @@
   background: white;
   color: var(--color-text-muted);
 }
+
 .category-pill.active {
   background: var(--color-primary);
   color: white;
   box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
+
 .category-pill:hover:not(.active) {
   background: #fff5f0;
   color: var(--color-primary);

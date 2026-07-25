@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Plus, Pencil, Eye, EyeOff } from 'lucide-react'
+import { Plus, Pencil, Eye, EyeOff, Search, Package } from 'lucide-react'
 import { itemsApi, uploadImage } from '../../shared/api'
 import { CATEGORIES, LABELS } from '../../shared/constants'
 import GradientModal from '../../shared/components/GradientModal'
 import ModernSelect from '../../shared/components/ModernSelect'
 import FssaiBadge from '../../shared/components/FssaiBadge'
+import Loader from '../../shared/components/Loader'
 
 const emptyForm = {
   name: '',
@@ -78,31 +79,32 @@ function ItemFormModal({ isOpen, onClose, item, onSave }) {
       maxWidth="max-w-xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex gap-4 items-start">
-          <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200 shadow-sm relative">
             {form.imageUrl ? (
               <img src={form.imageUrl} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-2xl">🍗</div>
+              <div className="w-full h-full flex items-center justify-center text-3xl">🍗</div>
             )}
           </div>
-          <div className="flex-1">
-            <label className="btn-outline cursor-pointer inline-block">
+          <div className="flex-1 text-center sm:text-left">
+            <label className="btn-outline cursor-pointer inline-flex items-center gap-2">
               {uploading ? 'Uploading...' : 'Upload Image'}
               <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
             </label>
+            <p className="text-xs text-gray-400 mt-1 m-0">Recommended square ratio (e.g. 500x500)</p>
           </div>
         </div>
 
         <input
           className="input-field"
-          placeholder="Name"
+          placeholder="Item Name"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
           required
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <input
             className="input-field"
             placeholder="Unit (pc, plate, etc.)"
@@ -112,7 +114,7 @@ function ItemFormModal({ isOpen, onClose, item, onSave }) {
           <input
             className="input-field"
             type="number"
-            placeholder="Price"
+            placeholder="Price (₹)"
             value={form.price}
             onChange={(e) => setForm({ ...form, price: e.target.value })}
             required
@@ -121,7 +123,7 @@ function ItemFormModal({ isOpen, onClose, item, onSave }) {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <ModernSelect
             options={CATEGORIES}
             value={form.category}
@@ -147,7 +149,7 @@ function ItemFormModal({ isOpen, onClose, item, onSave }) {
         <div className="flex gap-3 justify-end pt-2">
           <button type="button" onClick={onClose} className="btn-outline">Cancel</button>
           <button type="submit" disabled={saving} className="btn-primary">
-            {saving ? 'Saving...' : item ? 'Update' : 'Create'}
+            {saving ? 'Saving...' : item ? 'Update Item' : 'Create Item'}
           </button>
         </div>
       </form>
@@ -160,6 +162,11 @@ export default function Items() {
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [editItem, setEditItem] = useState(null)
+
+  // Filters
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [selectedLabel, setSelectedLabel] = useState('All')
 
   const loadItems = () => {
     itemsApi
@@ -192,71 +199,126 @@ export default function Items() {
     setModalOpen(true)
   }
 
+  const filteredItems = items.filter((item) => {
+    const matchesSearch =
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory
+    const matchesLabel = selectedLabel === 'All' || item.label === selectedLabel
+    return matchesSearch && matchesCategory && matchesLabel
+  })
+
   return (
-    <div>
-      <div className="admin-page-header">
-        <h2>Items</h2>
-        <button onClick={openAdd} className="btn-primary">
+    <div className="space-y-5">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900 m-0">Items</h2>
+          <p className="text-xs md:text-sm text-gray-500 mt-0.5 m-0">Manage food items & menu pricing</p>
+        </div>
+        <button onClick={openAdd} className="btn-primary self-start sm:self-auto !py-2.5 !px-5 flex items-center justify-center gap-2 font-bold shadow-md shadow-orange-500/20 cursor-pointer">
           <Plus size={18} /> Add Item
         </button>
       </div>
 
-      <div className="admin-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Image</th>
-              <th>Name</th>
-              <th>Category</th>
-              <th>Label</th>
-              <th>Price</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={7} className="text-center py-8 text-gray-400">Loading...</td></tr>
-            ) : items.length === 0 ? (
-              <tr><td colSpan={7} className="text-center py-8 text-gray-400">No items yet</td></tr>
-            ) : (
-              items.map((item) => (
-                <tr key={item.id} className={item.isActive === false ? 'opacity-60 bg-gray-50' : ''}>
-                  <td>
-                    <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100">
+      {/* Search & Filter Bar */}
+      <div className="bg-white border border-gray-100 p-3.5 sm:p-4 rounded-2xl shadow-sm space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search items by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
+            />
+          </div>
+          <div className="flex gap-2">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:border-orange-500 cursor-pointer"
+            >
+              <option value="All">All Categories</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <select
+              value={selectedLabel}
+              onChange={(e) => setSelectedLabel(e.target.value)}
+              className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:border-orange-500 cursor-pointer"
+            >
+              <option value="All">All Diets</option>
+              {LABELS.map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Items Container */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        {loading ? (
+          <div className="py-12">
+            <Loader fullScreen={false} size="sm" text="Loading items..." subtext="" />
+          </div>
+        ) : filteredItems.length === 0 ? (
+          <div className="text-center py-12 px-4">
+            <Package size={40} className="mx-auto text-gray-300 mb-2" />
+            <p className="text-gray-500 font-medium m-0">No items found</p>
+            <p className="text-xs text-gray-400 m-0 mt-1">Try adjusting your search query or filters</p>
+          </div>
+        ) : (
+          <>
+            {/* Mobile View: Cards Grid (block md:hidden) */}
+            <div className="block md:hidden divide-y divide-gray-100">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`p-4 flex items-center justify-between gap-3 ${
+                    item.isActive === false ? 'bg-gray-50/70 opacity-70' : ''
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-100 relative">
                       {item.imageUrl ? (
-                        <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">🍗</div>
+                        <div className="w-full h-full flex items-center justify-center text-xl">🍗</div>
                       )}
+                      <div className="absolute top-1 left-1">
+                        <FssaiBadge isVeg={item.label === 'Veg'} size={14} />
+                      </div>
                     </div>
-                  </td>
-                  <td className="font-medium">{item.name}</td>
-                  <td>{item.category}</td>
-                  <td>
-                    <FssaiBadge isVeg={item.label === 'Veg'} size={18} />
-                  </td>
-                  <td className="font-semibold">₹{item.price}</td>
-                  <td>
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-sm text-gray-900 m-0 truncate">{item.name}</h4>
+                      <p className="text-xs text-gray-500 m-0 mt-0.5">{item.category}</p>
+                      <p className="font-extrabold text-sm text-orange-600 m-0 mt-1">₹{item.price}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-2 shrink-0">
                     {item.isActive === false ? (
-                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-200 text-gray-600">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-200 text-gray-600">
                         Hidden
                       </span>
                     ) : (
-                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
                         Visible
                       </span>
                     )}
-                  </td>
-                  <td>
+
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => toggleHide(item)}
-                        title={item.isActive === false ? 'Unhide item on website' : 'Hide item from website'}
-                        className={`p-2 rounded-lg cursor-pointer border-none transition-colors ${
+                        title={item.isActive === false ? 'Unhide item' : 'Hide item'}
+                        className={`p-2 rounded-xl cursor-pointer border-none transition-colors ${
                           item.isActive === false
-                            ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                            : 'hover:bg-gray-100 text-gray-500'
+                            ? 'bg-amber-100 text-amber-700'
+                            : 'bg-gray-100 text-gray-600'
                         }`}
                       >
                         {item.isActive === false ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -264,17 +326,88 @@ export default function Items() {
                       <button
                         onClick={() => openEdit(item)}
                         title="Edit item"
-                        className="p-2 rounded-lg hover:bg-gray-100 cursor-pointer border-none bg-transparent"
+                        className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer border-none"
                       >
                         <Pencil size={16} />
                       </button>
                     </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop View: Table (hidden md:block) */}
+            <div className="hidden md:block admin-table border-none shadow-none rounded-none">
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Label</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredItems.map((item) => (
+                    <tr key={item.id} className={item.isActive === false ? 'opacity-60 bg-gray-50' : ''}>
+                      <td>
+                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 border border-gray-100">
+                          {item.imageUrl ? (
+                            <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">🍗</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="font-medium text-gray-900">{item.name}</td>
+                      <td className="text-gray-600">{item.category}</td>
+                      <td>
+                        <FssaiBadge isVeg={item.label === 'Veg'} size={18} />
+                      </td>
+                      <td className="font-bold text-gray-900">₹{item.price}</td>
+                      <td>
+                        {item.isActive === false ? (
+                          <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-200 text-gray-600">
+                            Hidden
+                          </span>
+                        ) : (
+                          <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+                            Visible
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => toggleHide(item)}
+                            title={item.isActive === false ? 'Unhide item on website' : 'Hide item from website'}
+                            className={`p-2 rounded-lg cursor-pointer border-none transition-colors ${
+                              item.isActive === false
+                                ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                                : 'hover:bg-gray-100 text-gray-500'
+                            }`}
+                          >
+                            {item.isActive === false ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                          <button
+                            onClick={() => openEdit(item)}
+                            title="Edit item"
+                            className="p-2 rounded-lg hover:bg-gray-100 cursor-pointer border-none bg-transparent"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
 
       <ItemFormModal
