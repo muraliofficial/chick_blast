@@ -12,9 +12,9 @@ export default function NotFound() {
           alt="Chick Blast"
           className="h-24 w-auto object-contain animate-bounce drop-shadow-lg"
         />
-        <span className="absolute -top-2 -right-4 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md uppercase tracking-wider">
+        {/* <span className="absolute -top-2 -right-4 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md uppercase tracking-wider">
           404 Error
-        </span>
+        </span> */}
       </div>
 
       <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-3 tracking-tight">
