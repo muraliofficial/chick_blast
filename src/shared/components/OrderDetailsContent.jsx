@@ -1,12 +1,23 @@
 import moment from 'moment'
 import OrderBadge from './OrderBadge'
 import StatusPill from './StatusPill'
+import FssaiBadge from './FssaiBadge'
+import logoImg from '../../assets/logo.png'
 
 export default function OrderDetailsContent({ order }) {
   if (!order) return null
 
   return (
     <div className="space-y-6">
+      <div className="text-center pb-2 border-b border-gray-100">
+        <img
+          src={logoImg}
+          alt="Chick Blast"
+          className="h-12 w-auto mx-auto object-contain mb-1 drop-shadow-sm"
+        />
+        <p className="text-xs text-gray-500 font-medium m-0">Official Store Receipt</p>
+      </div>
+
       <div className="flex items-center justify-between flex-wrap gap-3">
         <OrderBadge orderNo={order.orderNo} />
         <StatusPill status={order.status} />
@@ -34,11 +45,14 @@ export default function OrderDetailsContent({ order }) {
               key={idx}
               className="flex items-center justify-between p-3 rounded-xl bg-gray-50"
             >
-              <div>
-                <p className="font-medium">{item.name}</p>
-                <p className="text-sm text-gray-500">
-                  ₹{item.price} × {item.quantity}
-                </p>
+              <div className="flex items-center gap-2.5">
+                <FssaiBadge isVeg={item.label === 'Veg'} size={16} />
+                <div>
+                  <p className="font-medium">{item.name}</p>
+                  <p className="text-sm text-gray-500">
+                    ₹{item.price} × {item.quantity}
+                  </p>
+                </div>
               </div>
               <p className="font-semibold">₹{(item.price * item.quantity).toFixed(2)}</p>
             </div>

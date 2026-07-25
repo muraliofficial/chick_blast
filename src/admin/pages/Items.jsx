@@ -4,6 +4,7 @@ import { itemsApi, uploadImage } from '../../shared/api'
 import { CATEGORIES, LABELS } from '../../shared/constants'
 import GradientModal from '../../shared/components/GradientModal'
 import ModernSelect from '../../shared/components/ModernSelect'
+import FssaiBadge from '../../shared/components/FssaiBadge'
 
 const emptyForm = {
   name: '',
@@ -233,9 +234,7 @@ export default function Items() {
                   <td className="font-medium">{item.name}</td>
                   <td>{item.category}</td>
                   <td>
-                    <span className={item.label === 'Veg' ? 'label-badge-veg' : 'label-badge-nonveg'}>
-                      {item.label}
-                    </span>
+                    <FssaiBadge isVeg={item.label === 'Veg'} size={18} />
                   </td>
                   <td className="font-semibold">₹{item.price}</td>
                   <td>

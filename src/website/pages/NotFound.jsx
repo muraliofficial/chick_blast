@@ -1,15 +1,18 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { UtensilsCrossed, Home, ArrowLeft } from 'lucide-react'
+import { Home, ArrowLeft } from 'lucide-react'
+import logoImg from '../../assets/logo.png'
 
 export default function NotFound() {
   return (
     <div className="min-h-[75vh] flex flex-col items-center justify-center text-center px-4 py-12">
       <div className="relative mb-6">
-        <div className="w-28 h-28 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 animate-bounce shadow-inner">
-          <UtensilsCrossed size={56} />
-        </div>
-        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md uppercase tracking-wider">
+        <img
+          src={logoImg}
+          alt="Chick Blast"
+          className="h-24 w-auto object-contain animate-bounce drop-shadow-lg"
+        />
+        <span className="absolute -top-2 -right-4 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md uppercase tracking-wider">
           404 Error
         </span>
       </div>

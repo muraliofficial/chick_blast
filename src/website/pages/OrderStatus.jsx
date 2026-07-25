@@ -6,6 +6,7 @@ import { useCart } from '../../shared/context/CartContext'
 import OrderBadge from '../../shared/components/OrderBadge'
 import StatusPill from '../../shared/components/StatusPill'
 import FssaiBadge from '../../shared/components/FssaiBadge'
+import logoImg from '../../assets/logo.png'
 
 function SuccessTick() {
   return (
@@ -121,6 +122,12 @@ export default function OrderStatus() {
 
   return (
     <div className="max-w-md mx-auto text-center space-y-6 py-6 pb-20">
+      <img
+        src={logoImg}
+        alt="Chick Blast Logo"
+        className="h-14 w-auto mx-auto object-contain drop-shadow-md animate-fade-in"
+      />
+
       {order.status === 'new' && <SuccessTick />}
 
       <div>

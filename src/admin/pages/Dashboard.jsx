@@ -17,6 +17,7 @@ import { dashboardApi } from '../../shared/api'
 import ModernDatePicker from '../../shared/components/ModernDatePicker'
 import ModernSelect from '../../shared/components/ModernSelect'
 import { TrendingUp, ShoppingBag, PieChart as PieIcon } from 'lucide-react'
+import logoImg from '../../assets/logo.png'
 
 const COLORS = ['#ff6b35', '#ffc857', '#3b82f6', '#22c55e', '#8b5cf6', '#ef4444', '#06b6d4']
 
@@ -56,9 +57,12 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div className="admin-page-header">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 m-0">Dashboard Overview</h2>
-          <p className="text-xs text-gray-500 mt-1">Real-time metrics & analytics</p>
+        <div className="flex items-center gap-3">
+          <img src={logoImg} alt="Chick Blast Logo" className="h-10 w-auto object-contain drop-shadow-sm" />
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 m-0">Dashboard Overview</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Real-time metrics & analytics</p>
+          </div>
         </div>
       </div>
 

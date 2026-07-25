@@ -3,9 +3,8 @@ import { Plus, Trash2, Pencil, Eye, EyeOff } from 'lucide-react'
 import { itemsApi, uploadImage } from '../../shared/api'
 import { CATEGORIES, LABELS } from '../../shared/constants'
 import GradientModal from '../../shared/components/GradientModal'
-
-// ... Keep existing form modal logic ...
-
+import ModernSelect from '../../shared/components/ModernSelect'
+import FssaiBadge from '../../shared/components/FssaiBadge'
 
 const emptyForm = {
   name: '',
@@ -41,11 +40,18 @@ function ComboFormModal({ isOpen, onClose, combo, allItems, onSave }) {
   }, [combo, isOpen])
 
   const toggleItem = (id) => {
+    const updatedIds = form.comboItemIds.includes(id)
+      ? form.comboItemIds.filter((i) => i !== id)
+      : [...form.comboItemIds, id]
+
+    // Auto-detect label: if all selected items are Veg, set to Veg, otherwise Non-Veg
+    const selectedItems = allItems.filter((i) => updatedIds.includes(i.id))
+    const autoLabel = selectedItems.length > 0 && selectedItems.every((i) => i.label === 'Veg') ? 'Veg' : 'Non-Veg'
+
     setForm((f) => ({
       ...f,
-      comboItemIds: f.comboItemIds.includes(id)
-        ? f.comboItemIds.filter((i) => i !== id)
-        : [...f.comboItemIds, id],
+      comboItemIds: updatedIds,
+      label: autoLabel,
     }))
   }
 
@@ -118,15 +124,23 @@ function ComboFormModal({ isOpen, onClose, combo, allItems, onSave }) {
           required
         />
 
-        <input
-          className="input-field"
-          type="number"
-          placeholder="Combo Price"
-          value={form.price}
-          onChange={(e) => setForm({ ...form, price: e.target.value })}
-          required
-          min="0"
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <input
+            className="input-field"
+            type="number"
+            placeholder="Combo Price"
+            value={form.price}
+            onChange={(e) => setForm({ ...form, price: e.target.value })}
+            required
+            min="0"
+          />
+          <ModernSelect
+            options={LABELS}
+            value={form.label}
+            onChange={(v) => setForm({ ...form, label: v })}
+            label="Food Type"
+          />
+        </div>
 
         <textarea
           className="input-field resize-none"
@@ -150,6 +164,7 @@ function ComboFormModal({ isOpen, onClose, combo, allItems, onSave }) {
                   onChange={() => toggleItem(item.id)}
                 />
                 <span className="flex-1 text-sm">{item.name}</span>
+                <FssaiBadge isVeg={item.label === 'Veg'} size={16} />
                 <span className="text-sm text-gray-500">₹{item.price}</span>
               </label>
             ))}
@@ -233,6 +248,7 @@ export default function ComboItems() {
             <tr>
               <th>Name</th>
               <th>Items</th>
+              <th>Label</th>
               <th>Price</th>
               <th>Status</th>
               <th>Actions</th>
@@ -240,15 +256,18 @@ export default function ComboItems() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="text-center py-8 text-gray-400">Loading...</td></tr>
+              <tr><td colSpan={6} className="text-center py-8 text-gray-400">Loading...</td></tr>
             ) : combos.length === 0 ? (
-              <tr><td colSpan={5} className="text-center py-8 text-gray-400">No combos yet</td></tr>
+              <tr><td colSpan={6} className="text-center py-8 text-gray-400">No combos yet</td></tr>
             ) : (
               combos.map((combo) => (
                 <tr key={combo.id} className={combo.isActive === false ? 'opacity-60 bg-gray-50' : ''}>
                   <td className="font-medium">{combo.name}</td>
                   <td className="text-sm text-gray-600 max-w-xs truncate">
                     {getItemNames(combo.comboItemIds)}
+                  </td>
+                  <td>
+                    <FssaiBadge isVeg={combo.label === 'Veg'} size={18} />
                   </td>
                   <td className="font-semibold">₹{combo.price}</td>
                   <td>

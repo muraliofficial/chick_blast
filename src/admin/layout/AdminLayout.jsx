@@ -9,6 +9,7 @@ import {
   Menu,
   X,
 } from 'lucide-react'
+import logoImg from '../../assets/logo.png'
 import '../../styles/admin.css'
 
 const navItems = [
@@ -25,9 +26,16 @@ export default function AdminLayout() {
   return (
     <div className="admin-layout">
       <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="admin-sidebar-header">
-          <h1>Chick Blast</h1>
-          <p>Admin Panel</p>
+        <div className="admin-sidebar-header flex items-center gap-3">
+          <img
+            src={logoImg}
+            alt="Chick Blast Logo"
+            className="h-10 w-auto object-contain bg-white/10 p-1 rounded-lg border border-white/10 shadow-sm"
+          />
+          <div>
+            <h1 className="text-lg font-bold text-white leading-tight m-0">Chick Blast</h1>
+            <p className="text-[11px] text-orange-400 font-semibold uppercase tracking-wider m-0 mt-0.5">Admin Panel</p>
+          </div>
         </div>
         <nav className="admin-nav">
           {navItems.map(({ to, icon: Icon, label, end }) => (

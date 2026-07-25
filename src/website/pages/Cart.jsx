@@ -5,6 +5,7 @@ import { useCart } from '../../shared/context/CartContext'
 import { ordersApi } from '../../shared/api'
 import SwipeToConfirm from '../../shared/components/SwipeToConfirm'
 import FssaiBadge from '../../shared/components/FssaiBadge'
+import logoImg from '../../assets/logo.png'
 
 export default function Cart() {
   const navigate = useNavigate()
@@ -61,9 +62,11 @@ export default function Cart() {
   if (items.length === 0) {
     return (
       <div className="max-w-md mx-auto text-center py-16 px-4">
-        <div className="w-24 h-24 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-          <ShoppingBag size={48} />
-        </div>
+        <img
+          src={logoImg}
+          alt="Chick Blast Logo"
+          className="h-20 w-auto mx-auto mb-6 object-contain drop-shadow-md opacity-90"
+        />
         <h2 className="text-2xl font-black text-gray-900 mb-2">Your Cart is Empty</h2>
         <p className="text-gray-500 text-sm mb-6">Looks like you haven't added any items yet.</p>
         <button
@@ -80,9 +83,12 @@ export default function Cart() {
     <div className="max-w-lg mx-auto space-y-6 pb-24">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-extrabold text-gray-900 m-0">Your Order</h2>
-          <p className="text-xs text-gray-500 mt-1">Review items & enter contact info</p>
+        <div className="flex items-center gap-3">
+          <img src={logoImg} alt="Chick Blast" className="h-8 w-auto object-contain" />
+          <div>
+            <h2 className="text-xl font-extrabold text-gray-900 m-0">Your Order</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Review items & enter contact info</p>
+          </div>
         </div>
         <button
           onClick={clearCart}

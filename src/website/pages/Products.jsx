@@ -93,6 +93,7 @@ function ProductCard({ product, onSelect }) {
 export default function Products() {
   const [products, setProducts] = useState([])
   const [category, setCategory] = useState('All')
+  const [foodType, setFoodType] = useState('All')
   const [loading, setLoading] = useState(true)
   const [selectedProduct, setSelectedProduct] = useState(null)
 
@@ -104,10 +105,11 @@ export default function Products() {
       .finally(() => setLoading(false))
   }, [])
 
-  const filtered =
-    category === 'All'
-      ? products
-      : products.filter((p) => p.category === category)
+  const filtered = products.filter((p) => {
+    const matchesCategory = category === 'All' || p.category === category
+    const matchesFoodType = foodType === 'All' || p.label === foodType
+    return matchesCategory && matchesFoodType
+  })
 
   if (loading) {
     return (
@@ -119,22 +121,62 @@ export default function Products() {
 
   return (
     <div>
-      <div className="category-filter">
-        <button
-          className={`category-pill ${category === 'All' ? 'active' : ''}`}
-          onClick={() => setCategory('All')}
-        >
-          All
-        </button>
-        {CATEGORIES.map((cat) => (
+      {/* Category & Diet Filters Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        {/* Category Pills */}
+        <div className="category-filter !mb-0 flex-1 min-w-0">
           <button
-            key={cat}
-            className={`category-pill ${category === cat ? 'active' : ''}`}
-            onClick={() => setCategory(cat)}
+            className={`category-pill ${category === 'All' ? 'active' : ''}`}
+            onClick={() => setCategory('All')}
           >
-            {cat}
+            All
           </button>
-        ))}
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              className={`category-pill ${category === cat ? 'active' : ''}`}
+              onClick={() => setCategory(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Veg / Non-Veg Diet Filter Pills */}
+        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-2xl flex-shrink-0 self-start sm:self-auto border border-gray-200/60 shadow-inner">
+          <button
+            onClick={() => setFoodType('All')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border-none cursor-pointer ${
+              foodType === 'All'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-900 bg-transparent'
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setFoodType('Veg')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border-none cursor-pointer ${
+              foodType === 'Veg'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                : 'text-gray-600 hover:text-emerald-700 bg-transparent'
+            }`}
+          >
+            <FssaiBadge isVeg={true} size={14} />
+            Veg
+          </button>
+          <button
+            onClick={() => setFoodType('Non-Veg')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border-none cursor-pointer ${
+              foodType === 'Non-Veg'
+                ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                : 'text-gray-600 hover:text-red-700 bg-transparent'
+            }`}
+          >
+            <FssaiBadge isVeg={false} size={14} />
+            Non-Veg
+          </button>
+        </div>
       </div>
 
       {filtered.length === 0 ? (

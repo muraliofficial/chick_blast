@@ -24,6 +24,7 @@ export function CartProvider({ children }) {
           price: product.price,
           quantity: 1,
           type: product.type || 'item',
+          label: product.label || 'Non-Veg',
           imageUrl: product.imageUrl,
         },
       ]
