@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #ff6b35;
+  --color-primary-dark: #e55a2b;
+  --color-secondary: #ffc857;
+  --color-secondary-dark: #e6b04e;
+  --color-bg: #faf8f5;
+  --color-surface: #ffffff;
+  --color-text: #1a1a2e;
+  --color-text-muted: #6b7280;
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+  --color-warning: #f59e0b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold text-white transition-all duration-200 cursor-pointer border-none;
+  background: var(--color-primary);
+}
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary-dark {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold text-white transition-all duration-200 cursor-pointer border-none;
+  background: var(--color-primary-dark);
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all duration-200 cursor-pointer border-none;
+  background: var(--color-secondary);
+  color: var(--color-text);
+}
+.btn-secondary:hover {
+  background: var(--color-secondary-dark);
+}
+
+.btn-secondary-dark {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold text-white transition-all duration-200 cursor-pointer border-none;
+  background: var(--color-secondary-dark);
+}
+
+.btn-danger {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold text-white transition-all duration-200 cursor-pointer border-none;
+  background: var(--color-danger);
+}
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+.btn-outline {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all duration-200 cursor-pointer;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  background: transparent;
+}
+.btn-outline:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+.pill-order-no {
+  @apply inline-flex items-center justify-center px-5 py-2 rounded-full font-bold text-white text-lg;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
+.pill-status {
+  @apply inline-flex items-center justify-center px-4 py-1.5 rounded-full font-semibold text-sm text-white capitalize;
+}
+
+.pill-status-new {
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+}
+.pill-status-preparing {
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+}
+.pill-status-packed {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+}
+.pill-status-delivered {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+.pill-status-cancelled {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.glass-nav {
+  @apply fixed bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-2 rounded-2xl z-50;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.modal-gradient-bg {
+  @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  @apply bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto border border-white/50;
+  animation: slideUp 0.3s ease;
+}
+
+.card {
+  @apply bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-200;
+}
+.card:hover {
+  @apply shadow-md;
+}
+
+.input-field {
+  @apply w-full px-4 py-2.5 rounded-xl border border-gray-200 outline-none transition-all duration-200;
+}
+.input-field:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+}
+
+.label-badge-veg {
+  @apply inline-flex px-2 py-0.5 rounded-full text-xs font-semibold;
+  background: #dcfce7;
+  color: #166534;
+}
+.label-badge-nonveg {
+  @apply inline-flex px-2 py-0.5 rounded-full text-xs font-semibold;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes tickDraw {
+  0% { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes tickScale {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.success-tick {
+  animation: tickScale 0.6s ease forwards;
+}
+
+.success-tick-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  animation: tickDraw 0.6s 0.3s ease forwards;
+}
+
+.success-tick-check {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: tickDraw 0.4s 0.7s ease forwards;
+}

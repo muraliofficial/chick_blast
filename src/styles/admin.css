@@ -1,0 +1,94 @@
+@import "./theme.css";
+
+.admin-layout {
+  @apply flex min-h-screen;
+  background: #f3f4f6;
+}
+
+.admin-sidebar {
+  @apply fixed left-0 top-0 h-full w-64 z-40 flex flex-col transition-transform duration-300;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.admin-sidebar-header {
+  @apply px-6 py-5 border-b border-white/10;
+}
+
+.admin-sidebar-header h1 {
+  @apply text-xl font-bold text-white m-0;
+}
+
+.admin-sidebar-header p {
+  @apply text-xs text-white/50 m-0 mt-1;
+}
+
+.admin-nav {
+  @apply flex-1 py-4 px-3 space-y-1;
+}
+
+.admin-nav-link {
+  @apply flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 no-underline;
+  color: rgba(255, 255, 255, 0.6);
+}
+.admin-nav-link:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.08);
+}
+.admin-nav-link.active {
+  color: white;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary-dark));
+}
+
+.admin-main {
+  @apply flex-1 ml-64 p-6 min-w-0 max-w-full overflow-x-hidden;
+}
+
+.admin-page-header {
+  @apply flex items-center justify-between mb-6 flex-wrap gap-4;
+}
+
+.admin-page-header h2 {
+  @apply text-2xl font-bold m-0;
+}
+
+.admin-table {
+  @apply w-full bg-white rounded-2xl overflow-x-auto shadow-sm border border-gray-100;
+}
+
+.admin-table table {
+  @apply w-full;
+}
+
+.admin-table th {
+  @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider;
+  color: var(--color-text-muted);
+  background: #f9fafb;
+}
+
+.admin-table td {
+  @apply px-4 py-3 text-sm border-t border-gray-100;
+}
+
+.admin-table tr {
+  @apply cursor-pointer transition-colors duration-150;
+}
+.admin-table tbody tr:hover {
+  background: #fff9f5;
+}
+
+.admin-stat-card {
+  @apply p-6 rounded-2xl bg-white shadow-sm;
+}
+
+@media (max-width: 768px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+  }
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+  .admin-main {
+    margin-left: 0;
+    padding: 1rem;
+  }
+}
