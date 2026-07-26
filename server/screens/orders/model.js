@@ -1,4 +1,4 @@
-import { getDb, FieldValue } from '../config/firebase.js'
+import { getDb, FieldValue } from '../../config/firebase.js'
 
 export const ORDER_STATUSES = {
   NEW: 'new',
@@ -63,7 +63,7 @@ export async function getNextOrderNo(db, orderDate) {
   })
 }
 
-export async function createOrder(orderData) {
+export async function createOrderInDb(orderData) {
   const db = getDb()
   const orderDate = getTodayDate()
   const orderNo = await getNextOrderNo(db, orderDate)
@@ -108,7 +108,7 @@ export async function createOrder(orderData) {
   return serializeDoc(created)
 }
 
-export async function getActiveOrders() {
+export async function fetchActiveOrders() {
   const db = getDb()
 
   if (!db) {
@@ -126,7 +126,7 @@ export async function getActiveOrders() {
   return orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 }
 
-export async function getOrders({ fromDate, toDate, status } = {}) {
+export async function fetchOrders({ fromDate, toDate, status } = {}) {
   const db = getDb()
 
   if (!db) {
@@ -160,7 +160,7 @@ export async function getOrders({ fromDate, toDate, status } = {}) {
   return orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 }
 
-export async function getOrderById(id) {
+export async function fetchOrderById(id) {
   const db = getDb()
 
   if (!db) {
@@ -173,7 +173,7 @@ export async function getOrderById(id) {
   return serializeDoc(doc)
 }
 
-export async function updateOrderStatus(id, newStatus) {
+export async function updateOrderStatusInDb(id, newStatus) {
   const db = getDb()
 
   if (!db) {
@@ -205,7 +205,7 @@ export async function updateOrderStatus(id, newStatus) {
   return serializeDoc(updated)
 }
 
-export async function deliverOrder(id, payment) {
+export async function deliverOrderInDb(id, payment) {
   const db = getDb()
 
   if (!db) {
@@ -236,84 +236,4 @@ export async function deliverOrder(id, payment) {
 
   const updated = await docRef.get()
   return serializeDoc(updated)
-}
-
-export async function getItemOrderCounts(date) {
-  const db = getDb()
-  const targetDate = date || getTodayDate()
-
-  if (!db) {
-    const counts = {}
-    memoryOrders.forEach((order) => {
-      if (order.orderDate !== targetDate) return
-      if (order.status === ORDER_STATUSES.CANCELLED) return
-      order.items?.forEach((item) => {
-        counts[item.name] = (counts[item.name] || 0) + item.quantity
-      })
-    })
-    return Object.entries(counts).map(([name, count]) => ({ name, count }))
-  }
-
-  const snapshot = await db
-    .collection('orders')
-    .where('orderDate', '==', targetDate)
-    .get()
-
-  const counts = {}
-  snapshot.docs.forEach((doc) => {
-    const order = doc.data()
-    if (order.status === ORDER_STATUSES.CANCELLED) return
-    order.items?.forEach((item) => {
-      counts[item.name] = (counts[item.name] || 0) + item.quantity
-    })
-  })
-
-  return Object.entries(counts).map(([name, count]) => ({ name, count }))
-}
-
-export async function getOrderGrowth(month, year) {
-  const db = getDb()
-  const targetMonth = month || new Date().getMonth() + 1
-  const targetYear = year || new Date().getFullYear()
-  const monthStr = String(targetMonth).padStart(2, '0')
-  const fromDate = `${targetYear}-${monthStr}-01`
-  const lastDay = new Date(targetYear, targetMonth, 0).getDate()
-  const toDate = `${targetYear}-${monthStr}-${String(lastDay).padStart(2, '0')}`
-
-  if (!db) {
-    const dayCounts = {}
-    memoryOrders.forEach((order) => {
-      if (order.orderDate < fromDate || order.orderDate > toDate) return
-      if (order.status === ORDER_STATUSES.CANCELLED) return
-      dayCounts[order.orderDate] = (dayCounts[order.orderDate] || 0) + 1
-    })
-    const result = []
-    for (let d = 1; d <= lastDay; d++) {
-      const dateStr = `${targetYear}-${monthStr}-${String(d).padStart(2, '0')}`
-      result.push({ date: dateStr, count: dayCounts[dateStr] || 0 })
-    }
-    return result
-  }
-
-  const snapshot = await db
-    .collection('orders')
-    .where('orderDate', '>=', fromDate)
-    .where('orderDate', '<=', toDate)
-    .get()
-
-  const dayCounts = {}
-  snapshot.docs.forEach((doc) => {
-    const order = doc.data()
-    if (order.status === ORDER_STATUSES.CANCELLED) return
-    const day = order.orderDate
-    dayCounts[day] = (dayCounts[day] || 0) + 1
-  })
-
-  const result = []
-  for (let d = 1; d <= lastDay; d++) {
-    const dateStr = `${targetYear}-${monthStr}-${String(d).padStart(2, '0')}`
-    result.push({ date: dateStr, count: dayCounts[dateStr] || 0 })
-  }
-
-  return result
 }

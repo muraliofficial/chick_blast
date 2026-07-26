@@ -11,34 +11,72 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts'
+import moment from 'moment'
 import { dashboardApi } from '../../shared/api'
 import ModernDatePicker from '../../shared/components/ModernDatePicker'
 import ModernSelect from '../../shared/components/ModernSelect'
-import { TrendingUp, ShoppingBag, PieChart as PieIcon, Award, Calendar } from 'lucide-react'
+import { TrendingUp, ShoppingBag, PieChart as PieIcon, Award, Calendar, Filter } from 'lucide-react'
 import logoImg from '../../assets/logo.png'
 
 const COLORS = ['#ff6b35', '#ffc857', '#3b82f6', '#22c55e', '#8b5cf6', '#ef4444', '#06b6d4']
 
 export default function Dashboard() {
-  const today = new Date().toISOString().split('T')[0]
+  const todayStr = moment().format('YYYY-MM-DD')
   const currentMonth = new Date().getMonth() + 1
   const currentYear = new Date().getFullYear()
 
-  const [itemDate, setItemDate] = useState(today)
+  const [activePreset, setActivePreset] = useState('today')
+  const [fromDate, setFromDate] = useState(todayStr)
+  const [toDate, setToDate] = useState(todayStr)
+
   const [itemData, setItemData] = useState([])
   const [growthMonth, setGrowthMonth] = useState(currentMonth)
   const [growthYear, setGrowthYear] = useState(currentYear)
   const [growthData, setGrowthData] = useState([])
 
-  useEffect(() => {
-    dashboardApi.itemCounts(itemDate).then(setItemData).catch(console.error)
-  }, [itemDate])
+  // Calculate dates based on selected preset
+  const handlePresetSelect = (presetKey) => {
+    setActivePreset(presetKey)
+    let start = todayStr
+    let end = todayStr
 
+    if (presetKey === 'today') {
+      start = todayStr
+      end = todayStr
+    } else if (presetKey === '7days') {
+      start = moment().subtract(6, 'days').format('YYYY-MM-DD')
+      end = todayStr
+    } else if (presetKey === '30days') {
+      start = moment().subtract(29, 'days').format('YYYY-MM-DD')
+      end = todayStr
+    } else if (presetKey === 'thisMonth') {
+      start = moment().startOf('month').format('YYYY-MM-DD')
+      end = todayStr
+    }
+
+    if (presetKey !== 'custom') {
+      setFromDate(start)
+      setToDate(end)
+    }
+  }
+
+  // Effect to fetch item distribution based on date filter range
   useEffect(() => {
-    dashboardApi.orderGrowth(growthMonth, growthYear).then(setGrowthData).catch(console.error)
+    dashboardApi
+      .itemCounts({ fromDate, toDate })
+      .then(setItemData)
+      .catch(console.error)
+  }, [fromDate, toDate])
+
+  // Effect to fetch monthly growth data
+  useEffect(() => {
+    dashboardApi
+      .orderGrowth(growthMonth, growthYear)
+      .then(setGrowthData)
+      .catch(console.error)
   }, [growthMonth, growthYear])
 
-  const totalOrdersThisDate = itemData.reduce((s, i) => s + i.count, 0)
+  const totalOrdersThisRange = itemData.reduce((s, i) => s + i.count, 0)
   const totalOrders = growthData.reduce((s, d) => s + d.count, 0)
   const activeDays = growthData.filter((d) => d.count > 0).length
 
@@ -52,9 +90,17 @@ export default function Dashboard() {
     label: String(y),
   }))
 
+  // Formatted date label for display
+  const getDateRangeLabel = () => {
+    if (fromDate === toDate) {
+      return fromDate === todayStr ? 'Today' : moment(fromDate).format('DD MMM YYYY')
+    }
+    return `${moment(fromDate).format('DD MMM')} – ${moment(toDate).format('DD MMM YYYY')}`
+  }
+
   return (
     <div className="space-y-5">
-      {/* Header */}
+      {/* Header & Logo */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <img src={logoImg} alt="Chick Blast Logo" className="h-10 sm:h-12 w-auto object-contain drop-shadow-sm" />
@@ -63,6 +109,69 @@ export default function Dashboard() {
             <p className="text-xs md:text-sm text-gray-500 mt-0.5 m-0">Real-time metrics & store analytics</p>
           </div>
         </div>
+      </div>
+
+      {/* Date Range Filter Bar */}
+      <div className="bg-white border border-gray-100 rounded-2xl p-3.5 sm:p-4 shadow-sm space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-xl bg-orange-50 text-orange-500 shrink-0">
+              <Filter size={18} />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 m-0">Date Filter Range</h3>
+              <p className="text-xs text-gray-500 m-0">Filter metrics by time period</p>
+            </div>
+          </div>
+
+          {/* Presets */}
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {[
+              { key: 'today', label: 'Today' },
+              { key: '7days', label: 'Last 7 Days' },
+              { key: '30days', label: 'Last 30 Days' },
+              { key: 'thisMonth', label: 'This Month' },
+              { key: 'custom', label: 'Custom Range' },
+            ].map(({ key, label }) => {
+              const isActive = activePreset === key
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handlePresetSelect(key)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border-none ${
+                    isActive
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20'
+                      : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200/60'
+                  }`}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Custom Range Picker Inputs */}
+        {activePreset === 'custom' && (
+          <div className="pt-2 border-t border-gray-100 flex flex-col sm:flex-row items-center gap-3 animate-in fade-in duration-150">
+            <div className="w-full sm:w-48">
+              <ModernDatePicker
+                label="From Date"
+                value={fromDate}
+                onChange={(d) => setFromDate(d || todayStr)}
+              />
+            </div>
+            <div className="hidden sm:block text-gray-400 font-medium text-xs mt-4">—</div>
+            <div className="w-full sm:w-48">
+              <ModernDatePicker
+                label="To Date"
+                value={toDate}
+                onChange={(d) => setToDate(d || todayStr)}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Top Stat Summary Cards */}
@@ -83,12 +192,12 @@ export default function Dashboard() {
         <div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider m-0">Selected Date Sales</p>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider m-0">Filtered Period Sales</p>
               <Calendar size={16} className="text-orange-500" />
             </div>
-            <h3 className="text-2xl sm:text-3xl font-black text-gray-900 mt-1 m-0">{totalOrdersThisDate}</h3>
+            <h3 className="text-2xl sm:text-3xl font-black text-gray-900 mt-1 m-0">{totalOrdersThisRange}</h3>
           </div>
-          <p className="text-xs text-gray-500 mt-2 m-0 truncate">Items ordered on {itemDate}</p>
+          <p className="text-xs text-gray-500 mt-2 m-0 truncate">Items ordered ({getDateRangeLabel()})</p>
         </div>
 
         {/* Card 3 */}
@@ -119,18 +228,15 @@ export default function Dashboard() {
               </div>
               <div>
                 <h3 className="text-base font-bold text-gray-900 m-0">Item Distribution</h3>
-                <span className="text-xs text-gray-400">Sales share per item</span>
+                <span className="text-xs text-gray-400">Sales share ({getDateRangeLabel()})</span>
               </div>
-            </div>
-            <div className="w-full sm:w-48">
-              <ModernDatePicker value={itemDate} onChange={(d) => d && setItemDate(d)} />
             </div>
           </div>
 
           {itemData.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-gray-400">
               <p className="text-3xl mb-2 m-0">📊</p>
-              <p className="text-sm font-medium m-0">No orders recorded for this date</p>
+              <p className="text-sm font-medium m-0">No orders recorded for selected period</p>
             </div>
           ) : (
             <div className="relative">
@@ -175,7 +281,7 @@ export default function Dashboard() {
 
               {/* Inner Radial Stat */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-xl sm:text-2xl font-black text-gray-900">{totalOrdersThisDate}</span>
+                <span className="text-xl sm:text-2xl font-black text-gray-900">{totalOrdersThisRange}</span>
                 <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Total</span>
               </div>
             </div>

@@ -52,7 +52,7 @@ export default function Cart() {
 
       setLastOrderId(order.id)
       clearCart()
-      navigate('/order-status', { state: { orderId: order.id } })
+      navigate('/order-status', { state: { orderId: order.id, justPlaced: true } })
     } catch (err) {
       setError(err.message)
       setPlacing(false)
@@ -85,23 +85,6 @@ export default function Cart() {
 
   return (
     <div className="max-w-lg mx-auto space-y-5 pb-32">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-white border border-gray-100 p-4 rounded-2xl shadow-xs">
-        <div className="flex items-center gap-3">
-          <img src={logoImg} alt="Chick Blast" className="h-9 w-auto object-contain" />
-          <div>
-            <h2 className="text-lg font-black text-gray-900 m-0 leading-tight">Review Order</h2>
-            <p className="text-xs text-gray-400 font-medium m-0">{itemCount} {itemCount === 1 ? 'item' : 'items'} in your cart</p>
-          </div>
-        </div>
-        <button
-          onClick={clearCart}
-          className="text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
-        >
-          Clear Cart
-        </button>
-      </div>
-
       {/* Selected Dishes Card Sheet */}
       <div className="bg-white border border-gray-100 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
         <div className="flex items-center justify-between pb-2 border-b border-gray-100">
@@ -109,7 +92,7 @@ export default function Cart() {
             <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center font-bold">
               🛒
             </div>
-            <h3 className="text-sm font-black text-gray-900 m-0">Selected Items ({items.length})</h3>
+            <h3 className="text-sm font-black text-gray-900 m-0">Selected Items ({itemCount})</h3>
           </div>
           <button
             onClick={() => navigate('/')}

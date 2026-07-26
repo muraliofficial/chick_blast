@@ -1,5 +1,5 @@
-const BASE = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api` 
+const BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api`
   : '/api'
 
 let activeRequests = 0
@@ -75,9 +75,17 @@ export const ordersApi = {
 }
 
 export const dashboardApi = {
-  itemCounts: (date) => {
-    const query = date ? `?date=${date}` : ''
-    return request(`/dashboard/item-counts${query}`)
+  itemCounts: (dateOrParams) => {
+    if (typeof dateOrParams === 'string') {
+      const query = dateOrParams ? `?date=${dateOrParams}` : ''
+      return request(`/dashboard/item-counts${query}`)
+    }
+    const params = new URLSearchParams()
+    if (dateOrParams?.date) params.set('date', dateOrParams.date)
+    if (dateOrParams?.fromDate) params.set('fromDate', dateOrParams.fromDate)
+    if (dateOrParams?.toDate) params.set('toDate', dateOrParams.toDate)
+    const query = params.toString()
+    return request(`/dashboard/item-counts${query ? `?${query}` : ''}`)
   },
   orderGrowth: (month, year) => {
     const params = new URLSearchParams()

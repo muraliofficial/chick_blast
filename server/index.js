@@ -4,9 +4,10 @@ import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { initFirebase } from './config/firebase.js'
-import itemsRouter from './routes/items.js'
-import ordersRouter, { dashboardRouter } from './routes/orders.js'
-import uploadRouter from './routes/upload.js'
+import itemsRouter from './screens/items/routes.js'
+import ordersRouter from './screens/orders/routes.js'
+import dashboardRouter from './screens/dashboard/routes.js'
+import uploadRouter from './screens/upload/routes.js'
 
 dotenv.config()
 

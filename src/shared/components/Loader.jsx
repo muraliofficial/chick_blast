@@ -22,9 +22,8 @@ export default function Loader({
   }
 
   const containerClasses = fullScreen
-    ? `fixed inset-0 z-[99999] flex flex-col items-center justify-center p-4 transition-all duration-300 ${
-        overlay ? 'bg-slate-950/65 backdrop-blur-md' : 'bg-slate-900'
-      }`
+    ? `fixed inset-0 z-[99999] flex flex-col items-center justify-center p-4 transition-all duration-300 ${overlay ? 'bg-slate-950/65 backdrop-blur-md' : 'bg-slate-900'
+    }`
     : 'flex flex-col items-center justify-center p-8 w-full h-full min-h-[200px]'
 
   return (

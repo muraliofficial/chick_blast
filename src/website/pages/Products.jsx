@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Plus, Minus, Search, X, ShoppingBag, ChevronRight } from 'lucide-react'
+import { Plus, Minus, Search, X, ShoppingBag, ChevronRight, RotateCcw } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { itemsApi } from '../../shared/api'
 import { CATEGORIES } from '../../shared/constants'
@@ -7,7 +7,6 @@ import { useCart } from '../../shared/context/CartContext'
 import FssaiBadge from '../../shared/components/FssaiBadge'
 import Loader from '../../shared/components/Loader'
 import ProductDetailModal from '../components/ProductDetailModal'
-import heroImg from '../../assets/hero.png'
 
 function ProductCard({ product, onSelect }) {
   const { items, addItem, updateQuantity } = useCart()
@@ -84,18 +83,18 @@ function ProductCard({ product, onSelect }) {
         {quantity > 0 ? (
           <div
             onClick={(e) => e.stopPropagation()}
-            className="flex items-center justify-between gap-1 bg-white border border-orange-500 rounded-xl p-0.5 shadow-xs shrink-0"
+            className="flex items-center justify-between gap-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl p-1 shadow-md shadow-orange-500/25 shrink-0"
           >
             <button
               onClick={handleDecrement}
-              className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-200 active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
+              className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
             >
               <Minus size={13} className="stroke-[3]" />
             </button>
-            <span className="font-black text-xs sm:text-sm px-1.5 text-gray-900 select-none">{quantity}</span>
+            <span className="font-black text-xs sm:text-sm px-1.5 text-white select-none">{quantity}</span>
             <button
               onClick={handleIncrement}
-              className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-200 active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
+              className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
             >
               <Plus size={13} className="stroke-[3]" />
             </button>
@@ -103,7 +102,7 @@ function ProductCard({ product, onSelect }) {
         ) : (
           <button
             onClick={handleAdd}
-            className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl font-black text-xs tracking-wider text-orange-600 bg-white border border-orange-500 hover:bg-orange-500 hover:text-white shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer flex items-center justify-center gap-1 active:scale-95 shrink-0"
+            className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl font-black text-xs tracking-wider text-white bg-gradient-to-r from-orange-500 via-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-md shadow-orange-500/25 hover:shadow-lg hover:shadow-orange-500/35 transition-all duration-200 cursor-pointer flex items-center justify-center gap-1 active:scale-95 shrink-0 border-none"
           >
             <Plus size={13} className="stroke-[3]" />
             <span>ADD</span>
@@ -150,109 +149,112 @@ export default function Products() {
 
   return (
     <div className="space-y-5 pb-16">
-      {/* Hero Banner Section */}
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 text-white p-5 sm:p-7 shadow-lg border border-white/10">
-        <div className="relative z-10 max-w-xl space-y-2.5">
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight m-0">
-            Taste the Crispy Perfection
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-300 font-medium m-0 max-w-md">
-            Order fresh fried chicken, momos, burgers, pizzas, and combos directly from Chick Blast!
-          </p>
+      {/* Sticky & Glassmorphic Search and Category Filters Bar */}
+      <div className="sticky top-[60px] sm:top-[72px] z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-xl border-b border-gray-200/60 shadow-xs space-y-3 transition-all">
+        <div className="max-w-6xl mx-auto space-y-2.5">
+          {/* Search Input & Active Filter Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+            {/* Search Input */}
+            <div className="relative flex-1 min-w-0">
+              <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-500" />
+              <input
+                type="text"
+                placeholder="Search delicious dishes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-10 py-2.5 bg-gray-50/90 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-400 rounded-2xl text-sm font-medium border border-gray-200 focus:border-orange-500 shadow-2xs outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-gray-200/60 hover:bg-gray-200 rounded-full p-1 border-none cursor-pointer transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
 
-          {/* Integrated Search Bar */}
-          <div className="relative pt-1 max-w-md">
-            <Search size={17} className="absolute left-3.5 top-[calc(50%+2px)] -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search dishes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 bg-white text-gray-900 placeholder-gray-400 rounded-xl text-sm font-medium border-none shadow-md outline-none focus:ring-2 focus:ring-orange-500"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-[calc(50%+2px)] -translate-y-1/2 text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-1"
-              >
-                <X size={15} />
-              </button>
+            {/* Reset Filters Button */}
+            {(category !== 'All' || foodType !== 'All' || searchQuery) && (
+              <div className="flex items-center justify-end gap-2 text-xs">
+                <button
+                  onClick={() => {
+                    setCategory('All')
+                    setFoodType('All')
+                    setSearchQuery('')
+                  }}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold cursor-pointer border-none transition-colors"
+                >
+                  <RotateCcw size={13} />
+                  <span>Reset Filters</span>
+                </button>
+              </div>
             )}
           </div>
-        </div>
 
-        <img
-          src={heroImg}
-          alt="Hero"
-          className="absolute right-0 bottom-0 top-0 h-full w-1/2 object-cover opacity-20 pointer-events-none hidden md:block mix-blend-overlay"
-        />
-      </div>
-
-      {/* Simple & Clean Category & Diet Filter Bar */}
-      <div className="bg-white border border-gray-100 p-3 rounded-2xl shadow-sm space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Category Scroll Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-1 min-w-0">
-            <button
-              onClick={() => setCategory('All')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border cursor-pointer transition-all ${
-                category === 'All'
-                  ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                  : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-              }`}
-            >
-              All
-            </button>
-
-            {CATEGORIES.map((cat) => (
+          {/* Category Icon Pills & Diet Filter */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-0.5">
+            {/* Category Pills Slider */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-1 min-w-0 py-0.5">
               <button
-                key={cat}
-                onClick={() => setCategory(cat)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border cursor-pointer transition-all ${
-                  category === cat
-                    ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
-                    : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                }`}
+                onClick={() => setCategory('All')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition-all border-none ${category === 'All'
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20 scale-[1.02]'
+                  : 'bg-gray-100/80 hover:bg-gray-100 text-gray-700 border border-gray-200/60'
+                  }`}
               >
-                {cat}
+                <span>All</span>
               </button>
-            ))}
-          </div>
 
-          {/* Simple Diet Filter Toggle */}
-          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl flex-shrink-0 self-start sm:self-auto border border-gray-200/60">
-            <button
-              onClick={() => setFoodType('All')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${
-                foodType === 'All'
+              {CATEGORIES.map((cat) => {
+                const isActive = category === cat
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setCategory(cat)}
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap cursor-pointer transition-all border-none ${isActive
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20 scale-[1.02]'
+                      : 'bg-gray-100/80 hover:bg-gray-100 text-gray-700 border border-gray-200/60'
+                      }`}
+                  >
+                    <span>{cat}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Diet Filter Toggle (All, Veg, Non-Veg) */}
+            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl flex-shrink-0 self-start sm:self-auto border border-gray-200/60">
+              <button
+                onClick={() => setFoodType('All')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${foodType === 'All'
                   ? 'bg-white text-gray-900 shadow-xs'
                   : 'text-gray-500 hover:text-gray-900 bg-transparent'
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setFoodType('Veg')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${
-                foodType === 'Veg'
+                  }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setFoodType('Veg')}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${foodType === 'Veg'
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'text-gray-600 hover:text-emerald-700 bg-transparent'
-              }`}
-            >
-              <FssaiBadge isVeg={true} size={12} />
-              <span>Veg</span>
-            </button>
-            <button
-              onClick={() => setFoodType('Non-Veg')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${
-                foodType === 'Non-Veg'
+                  }`}
+              >
+                <FssaiBadge isVeg={true} size={12} />
+                <span>Veg</span>
+              </button>
+              <button
+                onClick={() => setFoodType('Non-Veg')}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all border-none cursor-pointer ${foodType === 'Non-Veg'
                   ? 'bg-red-600 text-white shadow-xs'
                   : 'text-gray-600 hover:text-red-700 bg-transparent'
-              }`}
-            >
-              <FssaiBadge isVeg={false} size={12} />
-              <span>Non-Veg</span>
-            </button>
+                  }`}
+              >
+                <FssaiBadge isVeg={false} size={12} />
+                <span>Non-Veg</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

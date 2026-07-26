@@ -156,17 +156,17 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
           </div>
 
           {quantity > 0 ? (
-            <div className="flex items-center gap-2.5 bg-white border-2 border-orange-500 rounded-2xl p-1 shadow-md">
+            <div className="flex items-center gap-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-2xl p-1.5 shadow-lg shadow-orange-500/25">
               <button
                 onClick={handleDecrement}
-                className="w-9 h-9 rounded-xl bg-orange-100 text-orange-600 hover:bg-orange-200 active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
+                className="w-9 h-9 rounded-xl bg-white/20 hover:bg-white/30 text-white active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
               >
                 <Minus size={18} className="stroke-[3]" />
               </button>
-              <span className="w-8 text-center font-black text-lg text-gray-900 select-none">{quantity}</span>
+              <span className="w-8 text-center font-black text-lg text-white select-none">{quantity}</span>
               <button
                 onClick={handleIncrement}
-                className="w-9 h-9 rounded-xl bg-orange-100 text-orange-600 hover:bg-orange-200 active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
+                className="w-9 h-9 rounded-xl bg-white/20 hover:bg-white/30 text-white active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
               >
                 <Plus size={18} className="stroke-[3]" />
               </button>
@@ -174,7 +174,7 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
           ) : (
             <button
               onClick={handleAdd}
-              className="btn-primary !px-7 !py-3 !rounded-2xl !text-sm font-black tracking-wide uppercase shadow-lg shadow-orange-500/25 flex items-center gap-2 active:scale-95 cursor-pointer"
+              className="px-7 py-3 rounded-2xl text-sm font-black tracking-wide uppercase text-white bg-gradient-to-r from-orange-500 via-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 flex items-center gap-2 active:scale-95 cursor-pointer border-none transition-all"
             >
               <Plus size={18} className="stroke-[3]" /> Add to Cart
             </button>

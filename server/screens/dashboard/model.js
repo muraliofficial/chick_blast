@@ -1,0 +1,87 @@
+import { getDb } from '../../config/firebase.js'
+import { ORDER_STATUSES, getTodayDate } from '../orders/model.js'
+
+export async function fetchItemOrderCounts(opts) {
+  const db = getDb()
+  let fromDate = getTodayDate()
+  let toDate = getTodayDate()
+
+  if (typeof opts === 'string' && opts) {
+    fromDate = opts
+    toDate = opts
+  } else if (opts && typeof opts === 'object') {
+    if (opts.fromDate) fromDate = opts.fromDate
+    if (opts.toDate) toDate = opts.toDate
+    if (opts.date && !opts.fromDate && !opts.toDate) {
+      fromDate = opts.date
+      toDate = opts.date
+    }
+  }
+
+  if (!db) {
+    return []
+  }
+
+  let query = db.collection('orders')
+  if (fromDate === toDate) {
+    query = query.where('orderDate', '==', fromDate)
+  } else {
+    query = query.where('orderDate', '>=', fromDate).where('orderDate', '<=', toDate)
+  }
+
+  const snapshot = await query.get()
+
+  const counts = {}
+  snapshot.docs.forEach((doc) => {
+    const order = doc.data()
+    if (order.status === ORDER_STATUSES.CANCELLED) return
+    order.items?.forEach((item) => {
+      counts[item.name] = (counts[item.name] || 0) + item.quantity
+    })
+  })
+
+  return Object.entries(counts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+}
+
+export async function fetchOrderGrowth(month, year) {
+  const db = getDb()
+  const targetMonth = month || new Date().getMonth() + 1
+  const targetYear = year || new Date().getFullYear()
+  const monthStr = String(targetMonth).padStart(2, '0')
+  const fromDate = `${targetYear}-${monthStr}-01`
+  const lastDay = new Date(targetYear, targetMonth, 0).getDate()
+  const toDate = `${targetYear}-${monthStr}-${String(lastDay).padStart(2, '0')}`
+
+  if (!db) {
+    const result = []
+    for (let d = 1; d <= lastDay; d++) {
+      const dateStr = `${targetYear}-${monthStr}-${String(d).padStart(2, '0')}`
+      result.push({ date: dateStr, count: 0 })
+    }
+    return result
+  }
+
+  const snapshot = await db
+    .collection('orders')
+    .where('orderDate', '>=', fromDate)
+    .where('orderDate', '<=', toDate)
+    .get()
+
+  const dayCounts = {}
+  snapshot.docs.forEach((doc) => {
+    const order = doc.data()
+    if (order.status === ORDER_STATUSES.CANCELLED) return
+    const day = order.orderDate
+    dayCounts[day] = (dayCounts[day] || 0) + 1
+  })
+
+  const result = []
+  for (let d = 1; d <= lastDay; d++) {
+    const dateStr = `${targetYear}-${monthStr}-${String(d).padStart(2, '0')}`
+    result.push({ date: dateStr, count: dayCounts[dateStr] || 0 })
+  }
+
+  return result
+}
