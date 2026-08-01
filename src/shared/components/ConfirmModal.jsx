@@ -1,0 +1,123 @@
+import { useState, useEffect } from 'react'
+import { AlertTriangle, XCircle, Check, X, Loader2 } from 'lucide-react'
+
+export default function ConfirmModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  title = 'Are you sure?',
+  message = 'This action cannot be undone.',
+  confirmText = 'Yes, Proceed',
+  cancelText = 'Cancel',
+  variant = 'danger', // 'danger' | 'warning' | 'info'
+  loading = false,
+}) {
+  const [shouldRender, setShouldRender] = useState(false)
+  const [active, setActive] = useState(false)
+
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true)
+      document.body.style.overflow = 'hidden'
+      const timer = setTimeout(() => setActive(true), 20)
+      return () => clearTimeout(timer)
+    } else {
+      setActive(false)
+      const timer = setTimeout(() => {
+        setShouldRender(false)
+        document.body.style.overflow = ''
+      }, 200)
+      return () => clearTimeout(timer)
+    }
+  }, [isOpen])
+
+  if (!shouldRender) return null
+
+  const variantStyles = {
+    danger: {
+      bgIcon: 'bg-red-50 text-red-600 border-red-100',
+      btnConfirm: 'bg-gradient-to-r from-red-500 via-red-600 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-md shadow-red-500/25',
+      icon: XCircle,
+    },
+    warning: {
+      bgIcon: 'bg-amber-50 text-amber-600 border-amber-100',
+      btnConfirm: 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md shadow-amber-500/25',
+      icon: AlertTriangle,
+    },
+    info: {
+      bgIcon: 'bg-blue-50 text-blue-600 border-blue-100',
+      btnConfirm: 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-md shadow-blue-500/25',
+      icon: AlertTriangle,
+    },
+  }
+
+  const currentVariant = variantStyles[variant] || variantStyles.danger
+  const IconComponent = currentVariant.icon
+
+  return (
+    <div
+      className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 transition-all duration-200 ease-out ${
+        active
+          ? 'bg-slate-950/60 backdrop-blur-md opacity-100'
+          : 'bg-slate-950/0 backdrop-blur-none opacity-0 pointer-events-none'
+      }`}
+      onClick={loading ? undefined : onClose}
+    >
+      <div
+        className={`w-full max-w-sm sm:max-w-md bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-gray-100 space-y-5 transition-all duration-200 ease-out transform ${
+          active ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'
+        }`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Top Header & Close Icon */}
+        <div className="flex items-start justify-between gap-3">
+          <div className={`p-3 rounded-2xl border ${currentVariant.bgIcon} shrink-0`}>
+            <IconComponent size={24} />
+          </div>
+
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-600 flex items-center justify-center transition-colors border-none cursor-pointer disabled:opacity-50"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Modal Text Content */}
+        <div className="space-y-1.5">
+          <h3 className="text-lg font-black text-gray-900 leading-tight m-0">{title}</h3>
+          <p className="text-xs sm:text-sm text-gray-500 leading-relaxed m-0">{message}</p>
+        </div>
+
+        {/* Footer Action Buttons */}
+        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-gray-100">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs sm:text-sm transition-all border-none cursor-pointer disabled:opacity-50"
+          >
+            {cancelText}
+          </button>
+
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={loading}
+            className={`flex-1 px-4 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm transition-all border-none cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-60 ${currentVariant.btnConfirm}`}
+          >
+            {loading ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <span>{confirmText}</span>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}

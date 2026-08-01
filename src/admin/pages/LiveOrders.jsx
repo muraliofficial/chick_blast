@@ -8,6 +8,7 @@ import StatusPill from '../../shared/components/StatusPill'
 import GradientModal from '../../shared/components/GradientModal'
 import OrderDetailsContent from '../../shared/components/OrderDetailsContent'
 import DeliveryModal from '../components/DeliveryModal'
+import ConfirmModal from '../components/ConfirmModal'
 import Toast, { useToast } from '../../shared/components/Toast'
 import Loader from '../../shared/components/Loader'
 
@@ -23,6 +24,8 @@ export default function LiveOrders() {
   const [refreshing, setRefreshing] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [deliveryOrder, setDeliveryOrder] = useState(null)
+  const [cancelModalOrder, setCancelModalOrder] = useState(null)
+  const [cancelling, setCancelling] = useState(false)
   const [actionLoading, setActionLoading] = useState(null)
   const [activeTab, setActiveTab] = useState('all')
   const { toast, showToast, hideToast } = useToast()
@@ -64,7 +67,7 @@ export default function LiveOrders() {
     try {
       await ordersApi.updateStatus(order.id, action.next)
       await fetchOrders()
-      showToast(`Order ${order.orderNo} updated to ${STATUS_LABELS[action.next] || action.next}!`, 'success')
+      showToast(`Order #${order.orderNo} updated to ${STATUS_LABELS[action.next] || action.next}!`, 'success')
     } catch (err) {
       showToast(err.message, 'error')
     } finally {
@@ -72,18 +75,23 @@ export default function LiveOrders() {
     }
   }
 
-  const handleCancel = async (order, e) => {
+  const handleOpenCancelModal = (order, e) => {
     e?.stopPropagation()
-    if (!confirm(`Cancel Order ${order.orderNo}?`)) return
-    setActionLoading(order.id)
+    setCancelModalOrder(order)
+  }
+
+  const handleConfirmCancel = async () => {
+    if (!cancelModalOrder) return
+    setCancelling(true)
     try {
-      await ordersApi.updateStatus(order.id, 'cancelled')
+      await ordersApi.updateStatus(cancelModalOrder.id, 'cancelled')
       await fetchOrders()
-      showToast(`Order ${order.orderNo} has been cancelled!`, 'success')
+      showToast(`Order #${cancelModalOrder.orderNo} has been cancelled!`, 'success')
+      setCancelModalOrder(null)
     } catch (err) {
       showToast(err.message, 'error')
     } finally {
-      setActionLoading(null)
+      setCancelling(false)
     }
   }
 
@@ -147,7 +155,7 @@ export default function LiveOrders() {
       <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar border-b border-gray-200">
         {[
           { key: 'all', label: 'All Active' },
-          { key: 'new', label: 'New Orders' },
+          { key: 'new', label: 'Ordered' },
           { key: 'preparing', label: 'Preparing' },
           { key: 'packed', label: 'Packed' },
         ].map((tab) => {
@@ -157,17 +165,15 @@ export default function LiveOrders() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 whitespace-nowrap border-none cursor-pointer transition-all ${
-                isActive
-                  ? 'bg-gray-900 text-white shadow-md'
-                  : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-              }`}
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 whitespace-nowrap border-none cursor-pointer transition-all ${isActive
+                ? 'bg-gray-900 text-white shadow-md'
+                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                }`}
             >
               <span>{tab.label}</span>
               <span
-                className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
-                  isActive ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
-                }`}
+                className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${isActive ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
+                  }`}
               >
                 {count}
               </span>
@@ -326,7 +332,7 @@ export default function LiveOrders() {
                             )}
                             {order.status !== 'cancelled' && order.status !== 'delivered' && (
                               <button
-                                onClick={(e) => handleCancel(order, e)}
+                                onClick={(e) => handleOpenCancelModal(order, e)}
                                 disabled={isLoadingThis}
                                 title="Cancel Order"
                                 className="pill-status pill-status-cancelled !px-2.5 !py-2 !text-xs font-semibold shadow-md border-none cursor-pointer hover:scale-105 transition-all flex items-center gap-1"
@@ -363,6 +369,19 @@ export default function LiveOrders() {
         onClose={() => setDeliveryOrder(null)}
         order={deliveryOrder}
         onConfirm={handleDeliver}
+      />
+
+      {/* Cancel Order Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!cancelModalOrder}
+        onClose={() => setCancelModalOrder(null)}
+        onConfirm={handleConfirmCancel}
+        loading={cancelling}
+        title={`Cancel Order #${cancelModalOrder?.orderNo || ''}?`}
+        message={`Are you sure you want to cancel Order #${cancelModalOrder?.orderNo || ''} for ${cancelModalOrder?.customerName || 'customer'}? This status update will notify the customer.`}
+        confirmText="Yes, Cancel Order"
+        cancelText="Keep Order"
+        variant="danger"
       />
     </div>
   )

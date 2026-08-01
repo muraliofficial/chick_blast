@@ -6,6 +6,7 @@ import GradientModal from '../../shared/components/GradientModal'
 import ModernSelect from '../../shared/components/ModernSelect'
 import FssaiBadge from '../../shared/components/FssaiBadge'
 import Loader from '../../shared/components/Loader'
+import ConfirmModal from '../components/ConfirmModal'
 
 const emptyForm = {
   name: '',
@@ -211,6 +212,9 @@ export default function ComboItems() {
     loadData()
   }, [])
 
+  const [deleteComboModal, setDeleteComboModal] = useState(null)
+  const [deleting, setDeleting] = useState(false)
+
   const toggleHide = async (combo) => {
     try {
       await itemsApi.update(combo.id, { isActive: !combo.isActive })
@@ -220,13 +224,21 @@ export default function ComboItems() {
     }
   }
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this combo item?')) return
+  const handleOpenDeleteModal = (combo) => {
+    setDeleteComboModal(combo)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deleteComboModal) return
+    setDeleting(true)
     try {
-      await itemsApi.delete(id)
+      await itemsApi.delete(deleteComboModal.id)
+      setDeleteComboModal(null)
       loadData()
     } catch (err) {
       alert(err.message)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -438,7 +450,7 @@ export default function ComboItems() {
                               <Pencil size={16} />
                             </button>
                             <button
-                              onClick={() => handleDelete(combo.id)}
+                              onClick={() => handleOpenDeleteModal(combo)}
                               title="Delete combo"
                               className="p-2 rounded-lg hover:bg-red-50 text-red-500 cursor-pointer border-none bg-transparent"
                             >
@@ -462,6 +474,18 @@ export default function ComboItems() {
         combo={editCombo}
         allItems={allItems}
         onSave={loadData}
+      />
+
+      <ConfirmModal
+        isOpen={!!deleteComboModal}
+        onClose={() => setDeleteComboModal(null)}
+        onConfirm={handleConfirmDelete}
+        loading={deleting}
+        title={`Delete Combo "${deleteComboModal?.name || ''}"?`}
+        message="Are you sure you want to delete this combo item? It will be permanently removed from the system."
+        confirmText="Yes, Delete"
+        cancelText="Cancel"
+        variant="danger"
       />
     </div>
   )

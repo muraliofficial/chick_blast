@@ -19,7 +19,7 @@ export const ORDER_STATUSES = {
 }
 
 export const STATUS_LABELS = {
-  new: 'New Order',
+  new: 'Ordered',
   preparing: 'Preparing',
   packed: 'Packed',
   delivered: 'Delivered',
@@ -31,6 +31,14 @@ export const STATUS_ACTIONS = {
   preparing: { label: 'Packed', next: 'packed' },
   packed: { label: 'Delivered', next: 'delivered' },
 }
+
+export const DATE_RANGES = [
+  { key: 'today', label: 'Today' },
+  { key: '7days', label: 'Last 7 Days' },
+  { key: '30days', label: 'Last 30 Days' },
+  { key: 'thisMonth', label: 'This Month' },
+  { key: 'custom', label: 'Custom Range' },
+]
 
 export const PAYMENT_MODES = ['UPI', 'Card', 'Cash', 'Split']
 

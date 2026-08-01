@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Plus, Minus, Search, X, ShoppingBag, ChevronRight, RotateCcw } from 'lucide-react'
+import { Plus, Minus, Search, X, ShoppingBag, ChevronRight, RotateCcw, ChevronDown, ChevronUp, UtensilsCrossed } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { itemsApi } from '../../shared/api'
 import { CATEGORIES } from '../../shared/constants'
@@ -32,11 +32,43 @@ function ProductCard({ product, onSelect }) {
   return (
     <div
       onClick={() => onSelect(product)}
-      className="card group cursor-pointer hover:border-orange-200 hover:shadow-md transition-all duration-200 flex flex-col justify-between bg-white rounded-2xl overflow-hidden border border-gray-100"
+      className="group cursor-pointer py-3.5 sm:py-4 px-2 sm:px-3 flex items-start justify-between gap-3 sm:gap-4 border-b border-gray-100/90 last:border-b-0 hover:bg-orange-50/20 transition-all duration-200 rounded-2xl relative"
     >
-      <div>
-        {/* Clean Food Image */}
-        <div className="aspect-square overflow-hidden bg-gray-50 relative">
+      {/* Left Column: Food Details */}
+      <div className="space-y-1 flex-1 min-w-0 pr-1 sm:pr-2">
+        <div className="flex items-center gap-1.5">
+          <FssaiBadge isVeg={isVeg} size={14} />
+          <span className={`text-[10px] font-black uppercase tracking-wider ${isVeg ? 'text-emerald-600' : 'text-red-600'}`}>
+            {product.label || (isVeg ? 'Veg' : 'Non-Veg')}
+          </span>
+          {product.category && (
+            <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-md uppercase">
+              {product.category}
+            </span>
+          )}
+        </div>
+
+        <h3 className="font-extrabold text-sm sm:text-base text-gray-900 leading-snug m-0 group-hover:text-orange-600 transition-colors">
+          {product.name}
+        </h3>
+
+        <div className="flex items-baseline gap-1 pt-0.5">
+          <span className="font-black text-sm sm:text-base text-gray-900">
+            ₹{product.price}
+          </span>
+          {product.unit && (
+            <span className="text-[10px] text-gray-400 font-semibold uppercase">({product.unit})</span>
+          )}
+        </div>
+
+        <p className="text-[11px] sm:text-xs text-gray-500 line-clamp-2 leading-relaxed m-0 pt-0.5 font-medium">
+          {product.description || 'Prepared fresh with high quality ingredients.'}
+        </p>
+      </div>
+
+      {/* Right Column: Food Image & Overlapping ADD Button */}
+      <div className="relative shrink-0 pb-3">
+        <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-gradient-to-br from-orange-50/80 to-amber-50/80 border border-gray-200/70 shadow-2xs relative group-hover:shadow-xs transition-shadow">
           {product.imageUrl ? (
             <img
               src={product.imageUrl}
@@ -44,70 +76,40 @@ function ProductCard({ product, onSelect }) {
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-4xl bg-orange-50/50">🍗</div>
+            <div className="w-full h-full flex items-center justify-center text-3xl">🍗</div>
           )}
         </div>
 
-        {/* Content */}
-        <div className="p-3 sm:p-3.5 space-y-1">
-          {/* Veg/Non-Veg Badge & Dish Title */}
-          <div className="flex items-center gap-2">
-            <FssaiBadge isVeg={isVeg} size={15} />
-            <h3 className="font-bold text-sm sm:text-base text-gray-900 leading-snug m-0 truncate group-hover:text-orange-600 transition-colors">
-              {product.name}
-            </h3>
-          </div>
-
-          <p className="text-[11px] text-gray-400 font-medium m-0 uppercase tracking-wider">
-            {product.category}
-          </p>
-
-          <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed m-0 pt-0.5">
-            {product.description || 'Prepared fresh with high quality ingredients.'}
-          </p>
-        </div>
-      </div>
-
-      {/* Footer Price & Add Button */}
-      <div className="p-3 sm:p-3.5 pt-0 flex items-center justify-between gap-2 mt-auto">
-        <div>
-          <span className="font-black text-base sm:text-lg text-gray-900 block leading-none">
-            ₹{product.price}
-          </span>
-          {product.unit && (
-            <span className="text-[10px] text-gray-400 font-semibold uppercase">{product.unit}</span>
+        {/* Swiggy-Style Overlapping ADD / Stepper Button */}
+        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-10 shrink-0">
+          {quantity > 0 ? (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center justify-between gap-1 bg-white border-2 border-emerald-600 text-emerald-700 rounded-xl px-1 py-0.5 shadow-md shadow-emerald-500/10 min-w-[86px]"
+            >
+              <button
+                onClick={handleDecrement}
+                className="w-5 h-5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
+              >
+                <Minus size={11} className="stroke-[3]" />
+              </button>
+              <span className="font-black text-xs px-1 text-emerald-800 select-none">{quantity}</span>
+              <button
+                onClick={handleIncrement}
+                className="w-5 h-5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all shadow-2xs"
+              >
+                <Plus size={11} className="stroke-[3]" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleAdd}
+              className="px-4 py-1.5 rounded-xl font-black text-xs tracking-wider text-emerald-600 bg-white border-2 border-emerald-600 hover:bg-emerald-50 shadow-md shadow-emerald-500/10 transition-all duration-200 cursor-pointer flex items-center justify-center gap-1 active:scale-95 border-none min-w-[80px]"
+            >
+              <span>ADD</span>
+            </button>
           )}
         </div>
-
-        {/* Quantity Stepper / ADD Button */}
-        {quantity > 0 ? (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center justify-between gap-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl p-1 shadow-md shadow-orange-500/25 shrink-0"
-          >
-            <button
-              onClick={handleDecrement}
-              className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
-            >
-              <Minus size={13} className="stroke-[3]" />
-            </button>
-            <span className="font-black text-xs sm:text-sm px-1.5 text-white select-none">{quantity}</span>
-            <button
-              onClick={handleIncrement}
-              className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-white/20 hover:bg-white/30 text-white active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
-            >
-              <Plus size={13} className="stroke-[3]" />
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={handleAdd}
-            className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl font-black text-xs tracking-wider text-white bg-gradient-to-r from-orange-500 via-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-md shadow-orange-500/25 hover:shadow-lg hover:shadow-orange-500/35 transition-all duration-200 cursor-pointer flex items-center justify-center gap-1 active:scale-95 shrink-0 border-none"
-          >
-            <Plus size={13} className="stroke-[3]" />
-            <span>ADD</span>
-          </button>
-        )}
       </div>
     </div>
   )
@@ -120,6 +122,8 @@ export default function Products() {
   const [searchQuery, setSearchQuery] = useState('')
   const [loading, setLoading] = useState(true)
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [collapsedCategories, setCollapsedCategories] = useState({})
+  const [showMenuDrawer, setShowMenuDrawer] = useState(false)
 
   const { itemCount, totalAmount } = useCart()
 
@@ -143,18 +147,45 @@ export default function Products() {
     })
   }, [products, category, foodType, searchQuery])
 
+  // Group products by category
+  const groupedProducts = useMemo(() => {
+    const groups = {}
+    filtered.forEach((product) => {
+      const cat = product.category || 'Others'
+      if (!groups[cat]) groups[cat] = []
+      groups[cat].push(product)
+    })
+    return groups
+  }, [filtered])
+
+  const toggleCategory = (cat) => {
+    setCollapsedCategories((prev) => ({
+      ...prev,
+      [cat]: !prev[cat],
+    }))
+  }
+
+  const scrollToCategory = (catName) => {
+    setCategory(catName)
+    setShowMenuDrawer(false)
+    setCollapsedCategories((prev) => ({ ...prev, [catName]: false }))
+    const el = document.getElementById(`cat-${catName}`)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
   if (loading) {
     return <Loader fullScreen={false} text="Loading Menu..." subtext="Fetching delicious Chick Blast items" />
   }
 
   return (
-    <div className="space-y-5 pb-16">
-      {/* Sticky & Glassmorphic Search and Category Filters Bar */}
-      <div className="sticky top-[60px] sm:top-[72px] z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-xl border-b border-gray-200/60 shadow-xs space-y-3 transition-all">
+    <div className="space-y-4 pb-24 relative">
+      {/* Sticky Glassmorphic Search & Filter Bar */}
+      <div className="sticky top-[60px] sm:top-[72px] z-30 -mx-4 px-4 py-3 bg-white/95 backdrop-blur-xl border-b border-gray-200/60 shadow-xs space-y-3 transition-all">
         <div className="max-w-6xl mx-auto space-y-2.5">
-          {/* Search Input & Active Filter Bar */}
+          {/* Search Input & Reset */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-            {/* Search Input */}
             <div className="relative flex-1 min-w-0">
               <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-500" />
               <input
@@ -174,7 +205,6 @@ export default function Products() {
               )}
             </div>
 
-            {/* Reset Filters Button */}
             {(category !== 'All' || foodType !== 'All' || searchQuery) && (
               <div className="flex items-center justify-end gap-2 text-xs">
                 <button
@@ -192,9 +222,9 @@ export default function Products() {
             )}
           </div>
 
-          {/* Category Icon Pills & Diet Filter */}
+          {/* Category Horizontal Pills & Diet Toggle Filter */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-0.5">
-            {/* Category Pills Slider */}
+            {/* Category Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar flex-1 min-w-0 py-0.5">
               <button
                 onClick={() => setCategory('All')}
@@ -259,26 +289,111 @@ export default function Products() {
         </div>
       </div>
 
-      {/* Product List Grid */}
-      {filtered.length === 0 ? (
+      {/* Grouped Swiggy-Style Category List Container */}
+      {Object.keys(groupedProducts).length === 0 ? (
         <div className="bg-white border border-gray-100 rounded-3xl text-center py-16 px-4 shadow-sm space-y-2">
           <ShoppingBag size={44} className="mx-auto text-gray-300" />
-          <h3 className="text-base font-bold text-gray-900 m-0">No items found</h3>
-          <p className="text-xs text-gray-400 m-0">Try searching for another dish or change filters</p>
+          <h3 className="text-base font-bold text-gray-900 m-0">No dishes found</h3>
+          <p className="text-xs text-gray-400 m-0">Try searching for another item or clear your filters</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
-          {filtered.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onSelect={setSelectedProduct}
-            />
-          ))}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-xs divide-y divide-gray-100 overflow-hidden">
+          {Object.entries(groupedProducts).map(([catName, catItems]) => {
+            const isCollapsed = collapsedCategories[catName]
+
+            return (
+              <div key={catName} id={`cat-${catName}`} className="transition-all scroll-mt-36">
+                {/* Category Accordion Header */}
+                <button
+                  onClick={() => toggleCategory(catName)}
+                  className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 bg-white hover:bg-gray-50/80 transition-colors border-none cursor-pointer text-left group"
+                >
+                  <h3 className="text-sm sm:text-base font-extrabold text-gray-900 m-0 group-hover:text-orange-600 transition-colors">
+                    {catName} ({catItems.length})
+                  </h3>
+
+                  <div className="text-gray-400 group-hover:text-orange-600 transition-colors">
+                    {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+                  </div>
+                </button>
+
+                {/* Swiggy-Style Item List */}
+                {!isCollapsed && (
+                  <div className="divide-y divide-gray-100 px-3 sm:px-4 bg-white border-t border-gray-100/60">
+                    {catItems.map((product) => (
+                      <ProductCard key={product.id} product={product} onSelect={setSelectedProduct} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 
-      {/* Floating Bottom Cart Bar (Mobile only, desktop uses top header cart) */}
+      {/* Floating Dark Swiggy-Style "MENU / CATEGORIES" Button */}
+      <div className="fixed bottom-24 right-5 z-40">
+        <button
+          onClick={() => setShowMenuDrawer(true)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-950/30 border border-slate-700/60 font-black text-xs tracking-wider uppercase cursor-pointer active:scale-95 transition-all"
+        >
+          <UtensilsCrossed size={16} className="text-amber-400" />
+          <span>MENU</span>
+        </button>
+      </div>
+
+      {/* Floating Quick Category Drawer / Modal */}
+      {showMenuDrawer && (
+        <div
+          className="fixed inset-0 z-[999] bg-slate-950/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+          onClick={() => setShowMenuDrawer(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4 max-h-[75vh] flex flex-col border border-gray-100 animate-in slide-in-from-bottom duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <UtensilsCrossed size={18} className="text-orange-500" />
+                <h3 className="text-base font-black text-gray-900 m-0">Select Category</h3>
+              </div>
+              <button
+                onClick={() => setShowMenuDrawer(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center border-none cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="overflow-y-auto space-y-1.5 pr-1 flex-1">
+              <button
+                onClick={() => scrollToCategory('All')}
+                className={`w-full flex items-center justify-between p-3 rounded-2xl text-xs font-bold text-left transition-all border-none cursor-pointer ${category === 'All' ? 'bg-orange-50 text-orange-600 border border-orange-200' : 'bg-gray-50 hover:bg-gray-100 text-gray-700'}`}
+              >
+                <span>All Categories</span>
+                <span className="font-extrabold text-gray-400">{filtered.length}</span>
+              </button>
+
+              {CATEGORIES.map((cat) => {
+                const count = products.filter((p) => p.category === cat).length
+                const isActive = category === cat
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => scrollToCategory(cat)}
+                    className={`w-full flex items-center justify-between p-3 rounded-2xl text-xs font-bold text-left transition-all border-none cursor-pointer ${isActive ? 'bg-orange-50 text-orange-600 border border-orange-200' : 'bg-gray-50 hover:bg-gray-100 text-gray-700'}`}
+                  >
+                    <span>{cat}</span>
+                    <span className="font-extrabold text-gray-400">{count}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Bottom Cart Bar */}
       {itemCount > 0 && (
         <div className="fixed bottom-20 left-4 right-4 md:hidden z-40 animate-in slide-in-from-bottom duration-300">
           <Link

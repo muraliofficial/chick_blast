@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Minus, Plus, Trash2, User, Phone, ArrowLeft, Receipt, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Minus, Plus, Trash2, User, Phone, ArrowLeft, Receipt, CheckCircle2, AlertCircle, ShoppingBag } from 'lucide-react'
 import { useCart } from '../../shared/context/CartContext'
 import { ordersApi } from '../../shared/api'
 import SwipeToConfirm from '../../shared/components/SwipeToConfirm'
@@ -85,67 +85,67 @@ export default function Cart() {
 
   return (
     <div className="max-w-lg mx-auto space-y-5 pb-32">
-      {/* Selected Dishes Card Sheet */}
+      {/* Selected Items Card Sheet */}
       <div className="bg-white border border-gray-100 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+        {/* Section Header */}
+        <div className="flex items-center justify-between pb-2.5 border-b border-gray-100">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center font-bold">
+            <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center font-bold shrink-0 text-sm">
               🛒
             </div>
             <h3 className="text-sm font-black text-gray-900 m-0">Selected Items ({itemCount})</h3>
           </div>
           <button
             onClick={() => navigate('/')}
-            className="text-xs font-extrabold text-orange-500 hover:text-orange-600 border-none bg-transparent cursor-pointer flex items-center gap-1"
+            className="text-xs font-extrabold text-orange-500 hover:text-orange-600 border-none bg-transparent cursor-pointer flex items-center gap-1 shrink-0"
           >
             <Plus size={14} className="stroke-[3]" /> Add More
           </button>
         </div>
 
+        {/* Item List */}
         <div className="divide-y divide-gray-100">
           {items.map((item) => (
-            <div key={item.itemId} className="py-3 first:pt-1 last:pb-0 flex items-center justify-between gap-3">
-              {/* Dish Thumbnail & Name */}
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="w-13 h-13 rounded-2xl bg-orange-50/50 overflow-hidden shrink-0 border border-gray-100 flex items-center justify-center">
+            <div key={item.itemId} className="py-2.5 first:pt-1 last:pb-0 flex items-center justify-between gap-2">
+              {/* Thumbnail & Item Details */}
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-orange-50/50 overflow-hidden shrink-0 border border-gray-100 relative flex items-center justify-center">
                   {item.imageUrl ? (
                     <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-2xl">🍗</span>
+                    <span className="text-xl">🍗</span>
                   )}
+                  {/* FSSAI Veg / Non-Veg Badge */}
+                  <div className="absolute top-0.5 right-0.5 z-10 p-0.5 flex items-center justify-center">
+                    <FssaiBadge isVeg={item.label === 'Veg'} size={11} />
+                  </div>
                 </div>
 
                 <div className="min-w-0 space-y-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <FssaiBadge isVeg={item.label === 'Veg'} size={13} />
-                    <h4 className="font-bold text-sm text-gray-900 truncate m-0">{item.name}</h4>
-                  </div>
-                  <p className="text-xs font-black text-orange-600 m-0">
-                    ₹{item.price}{' '}
-                    <span className="text-[10px] text-gray-400 font-semibold uppercase">x {item.quantity}</span>
-                  </p>
+                  <h4 className="font-bold text-xs sm:text-sm text-gray-900 truncate m-0">{item.name}</h4>
+                  <p className="text-[11px] font-semibold text-gray-400 m-0">₹{item.price} × {item.quantity}</p>
                 </div>
               </div>
 
-              {/* Quantity Stepper & Item Total */}
-              <div className="flex items-center gap-2.5 shrink-0">
-                <div className="flex items-center gap-1 bg-white border border-orange-500 rounded-xl p-0.5 shadow-xs">
+              {/* Quantity Stepper & Subtotal */}
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center bg-white border border-orange-500 rounded-lg p-0.5 shadow-2xs">
                   <button
                     onClick={() => updateQuantity(item.itemId, item.quantity - 1)}
-                    className="w-6 h-6 rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-200 active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
+                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-orange-50 text-orange-600 hover:bg-orange-100 active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
                   >
-                    <Minus size={12} className="stroke-[3]" />
+                    <Minus size={11} className="stroke-[3]" />
                   </button>
-                  <span className="w-5 text-center font-black text-xs text-gray-900 select-none">{item.quantity}</span>
+                  <span className="px-1.5 text-center font-black text-xs text-gray-900 select-none min-w-[16px]">{item.quantity}</span>
                   <button
                     onClick={() => updateQuantity(item.itemId, item.quantity + 1)}
-                    className="w-6 h-6 rounded-lg bg-orange-100 text-orange-600 hover:bg-orange-200 active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
+                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-orange-500 text-white hover:bg-orange-600 active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all shadow-xs"
                   >
-                    <Plus size={12} className="stroke-[3]" />
+                    <Plus size={11} className="stroke-[3]" />
                   </button>
                 </div>
 
-                <span className="font-black text-sm text-gray-900 w-14 text-right">
+                <span className="font-black text-xs sm:text-sm text-gray-900 text-right min-w-[38px]">
                   ₹{(item.price * item.quantity).toFixed(0)}
                 </span>
               </div>

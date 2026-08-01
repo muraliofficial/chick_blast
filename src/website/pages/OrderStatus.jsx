@@ -15,7 +15,9 @@ import {
   ArrowLeft,
   ArrowRight,
   Clock,
-  AlertCircle
+  AlertCircle,
+  ClipboardCheck,
+  Package,
 } from 'lucide-react'
 import { ordersApi } from '../../shared/api'
 import { useCart } from '../../shared/context/CartContext'
@@ -26,9 +28,9 @@ import Loader from '../../shared/components/Loader'
 import logoImg from '../../assets/logo.png'
 
 const TRACKER_STEPS = [
-  { key: 'new', label: 'Placed', icon: Receipt, desc: 'Kitchen received order' },
+  { key: 'new', label: 'Placed', icon: ClipboardCheck, desc: 'Kitchen received order' },
   { key: 'preparing', label: 'Preparing', icon: Flame, desc: 'Chef is cooking fresh' },
-  { key: 'packed', label: 'Packed', icon: PackageCheck, desc: 'Ready for pickup/delivery' },
+  { key: 'packed', label: 'Packed', icon: PackageCheck, desc: 'Ready for pickup' },
   { key: 'delivered', label: 'Delivered', icon: PartyPopper, desc: 'Order completed' },
 ]
 
@@ -275,7 +277,7 @@ export default function OrderStatus() {
         <div className="relative rounded-3xl p-5 sm:p-6 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-700 text-white text-center shadow-xl shadow-emerald-600/20 border border-emerald-400/30 overflow-hidden">
           <div className="relative z-10 space-y-1.5">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-[11px] font-black uppercase tracking-widest text-white border border-white/30">
-              <CheckCircle2 size={13} /> YOUR ORDER NUMBER / TOKEN
+              <CheckCircle2 size={13} /> YOUR ORDER NO
             </div>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white m-0 drop-shadow-md">
               #{order.orderNo}
@@ -283,149 +285,203 @@ export default function OrderStatus() {
             <p className="text-xs text-emerald-100 font-bold m-0 max-w-sm mx-auto">
               Please quote this Order Number when picking up or receiving your food
             </p>
-
-            <button
-              onClick={handleManualOpenOverlay}
-              className="mt-2.5 px-4 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-extrabold inline-flex items-center gap-1.5 transition-colors border border-white/30 cursor-pointer"
-            >
-              <CheckCircle2 size={15} /> View Fullscreen Green Success View
-            </button>
           </div>
         </div>
 
         {/* Visual Step Tracker Card */}
-        <div className="bg-white border border-gray-100 rounded-3xl p-5 sm:p-6 shadow-xs space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-600">Status Update</span>
-              <h3 className="text-xl sm:text-2xl font-black text-gray-900 m-0 capitalize">
-                {isCancelled ? 'Order Cancelled' : order.status === 'new' ? 'Order Placed!' : order.status === 'preparing' ? 'Preparing Meals 🍳' : order.status === 'packed' ? 'Packed & Ready 📦' : 'Delivered 🎉'}
+        <div className="bg-white border border-gray-100 rounded-3xl p-5 sm:p-6 shadow-sm space-y-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-600">
+                STATUS UPDATE
+              </span>
+              <h3 className="text-lg sm:text-xl font-black text-gray-900 m-0">
+                {isCancelled
+                  ? 'Order Cancelled'
+                  : order.status === 'new'
+                  ? 'Order Placed Successfully'
+                  : order.status === 'preparing'
+                  ? 'Meals Being Prepared'
+                  : order.status === 'packed'
+                  ? 'Packed & Ready for Pickup'
+                  : 'Order Delivered'}
               </h3>
             </div>
             <StatusPill status={order.status} />
           </div>
 
-          {/* Step Progress Line */}
+          {/* Step Progress Bar & Icons */}
           {!isCancelled && (
-            <div className="relative pt-2">
-              <div className="flex items-center justify-between relative z-10">
+            <div className="space-y-3 pt-1">
+              {/* Isolated Icon Row with Center-Anchored Connecting Line */}
+              <div className="relative flex items-center justify-between">
+                {/* Connecting Progress Line (Anchored directly to icon row center) */}
+                <div className="absolute inset-x-[12.5%] top-1/2 -translate-y-1/2 h-1 bg-gray-100 rounded-full z-0 overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-emerald-500 to-green-500 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.max(0, (currentStepIdx / 3) * 100)}%`,
+                    }}
+                  />
+                </div>
+
+                {/* Step Icons Row */}
                 {TRACKER_STEPS.map((step, idx) => {
                   const Icon = step.icon
                   const isPassed = currentStepIdx >= idx
                   const isCurrent = currentStepIdx === idx
 
                   return (
-                    <div key={step.key} className="flex flex-col items-center text-center space-y-2 flex-1">
+                    <div key={step.key} className="flex-1 flex justify-center relative z-10">
                       <div
                         className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${
                           isPassed
                             ? isCurrent
-                              ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 scale-110 ring-4 ring-emerald-100'
-                              : 'bg-emerald-500 text-white shadow-md'
-                            : 'bg-gray-100 text-gray-400 border border-gray-200'
+                              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/25 scale-110 ring-4 ring-emerald-100'
+                              : 'bg-emerald-500 text-white shadow-2xs'
+                            : 'bg-white text-gray-300 border border-gray-200'
                         }`}
                       >
-                        <Icon size={20} className={isCurrent ? 'animate-bounce' : ''} />
-                      </div>
-
-                      <div className="space-y-0.5">
-                        <p
-                          className={`text-xs font-black m-0 leading-tight ${
-                            isPassed ? 'text-gray-900' : 'text-gray-400'
-                          }`}
-                        >
-                          {step.label}
-                        </p>
-                        <p className="text-[10px] text-gray-400 hidden sm:block font-medium m-0">{step.desc}</p>
+                        <Icon size={18} className={isCurrent ? 'animate-pulse' : ''} />
                       </div>
                     </div>
                   )
                 })}
               </div>
 
-              {/* Connecting Bar */}
-              <div className="absolute top-7 sm:top-8 left-8 right-8 h-1 bg-gray-100 -z-0 rounded-full">
-                <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-green-500 rounded-full transition-all duration-500"
-                  style={{
-                    width: `${Math.max(0, (currentStepIdx / (TRACKER_STEPS.length - 1)) * 100)}%`,
-                  }}
-                />
+              {/* Step Labels Row */}
+              <div className="flex items-start justify-between pt-1">
+                {TRACKER_STEPS.map((step, idx) => {
+                  const isPassed = currentStepIdx >= idx
+
+                  return (
+                    <div key={step.key} className="flex-1 text-center space-y-0.5 px-1">
+                      <p
+                        className={`text-xs font-bold m-0 leading-tight ${
+                          isPassed ? 'text-gray-900' : 'text-gray-400'
+                        }`}
+                      >
+                        {step.label}
+                      </p>
+                      <p className="text-[10px] text-gray-400 hidden sm:block font-medium m-0">{step.desc}</p>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
         </div>
 
         {/* Order Info & Customer Details Card */}
-        <div className="bg-white border border-gray-100 rounded-3xl p-4 sm:p-5 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-            <OrderBadge orderNo={order.orderNo} />
-            <div className="flex items-center gap-1.5 text-xs text-gray-500 font-semibold">
-              <Clock size={14} className="text-emerald-600" />
-              <span>{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        <div className="bg-white border border-gray-100 rounded-3xl p-4 sm:p-5 shadow-sm space-y-4">
+          {/* Professional & Minimal Card Top Bar */}
+          <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+            <div className="space-y-0.5">
+              <h4 className="text-sm sm:text-base font-bold text-gray-900 m-0">Order #{order.orderNo}</h4>
+              <p className="text-[11px] text-gray-400 font-medium m-0">Order reference details</p>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100 shrink-0">
+              <Clock size={13} className="text-gray-400" />
+              <span>
+                {order.createdAt
+                  ? new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : 'Just Now'}
+              </span>
             </div>
           </div>
 
-          {/* Customer Details Grid */}
-          <div className="grid grid-cols-2 gap-3 text-xs bg-gray-50/80 p-3 rounded-2xl border border-gray-100">
-            <div className="space-y-1">
-              <span className="text-gray-400 font-semibold uppercase text-[10px] tracking-wider block">Customer Name</span>
-              <div className="flex items-center gap-1.5 font-bold text-gray-900">
-                <User size={14} className="text-gray-400" />
-                <span className="truncate">{order.customerName}</span>
+          {/* Customer Details Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {/* Customer Name Box */}
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50/80 border border-slate-100">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                <User size={18} />
+              </div>
+              <div className="min-w-0 space-y-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Customer Name</span>
+                <p className="font-extrabold text-xs sm:text-sm text-gray-900 truncate m-0">{order.customerName || 'Guest'}</p>
               </div>
             </div>
 
-            <div className="space-y-1">
-              <span className="text-gray-400 font-semibold uppercase text-[10px] tracking-wider block">Mobile Number</span>
-              <div className="flex items-center gap-1.5 font-bold text-gray-900">
-                <Phone size={14} className="text-gray-400" />
-                <span>{order.customerMobile}</span>
+            {/* Mobile Number Box */}
+            <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50/80 border border-slate-100">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                <Phone size={18} />
+              </div>
+              <div className="min-w-0 space-y-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block">Mobile Number</span>
+                <p className="font-extrabold text-xs sm:text-sm text-gray-900 truncate m-0">+91 {order.customerMobile}</p>
               </div>
             </div>
           </div>
 
-          {/* Expandable Order Details */}
-          <div className="border border-gray-100 rounded-2xl overflow-hidden">
+          {/* Ordered Items Breakdown */}
+          <div className="border border-gray-100 rounded-2xl overflow-hidden bg-white shadow-2xs">
             <button
               onClick={() => setItemsExpanded(!itemsExpanded)}
-              className="w-full p-3.5 bg-white flex items-center justify-between border-none cursor-pointer hover:bg-gray-50 transition-colors"
+              className="w-full p-3.5 bg-white flex items-center justify-between border-none cursor-pointer hover:bg-gray-50/80 transition-colors"
             >
-              <div className="flex items-center gap-2">
-                <ShoppingBag size={16} className="text-emerald-600" />
-                <span className="text-xs font-black text-gray-900">
-                  Ordered Items ({totalItemCount})
-                </span>
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+                  <ShoppingBag size={15} />
+                </div>
+                <div className="text-left">
+                  <span className="text-xs font-black text-gray-900 block leading-snug">
+                    Ordered Dishes ({totalItemCount} {totalItemCount === 1 ? 'item' : 'items'})
+                  </span>
+                  <span className="text-[10px] text-gray-400 font-semibold">Click to {itemsExpanded ? 'collapse' : 'view items'}</span>
+                </div>
               </div>
-              {itemsExpanded ? (
-                <ChevronUp size={16} className="text-gray-400" />
-              ) : (
-                <ChevronDown size={16} className="text-gray-400" />
-              )}
+              
+              <div className="flex items-center gap-2">
+                <span className="font-black text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                  ₹{order.totalAmount?.toFixed(0)}
+                </span>
+                {itemsExpanded ? (
+                  <ChevronUp size={16} className="text-gray-400" />
+                ) : (
+                  <ChevronDown size={16} className="text-gray-400" />
+                )}
+              </div>
             </button>
 
             {itemsExpanded && (
-              <div className="p-3.5 pt-0 space-y-2 bg-white border-t border-gray-100">
-                {order.items?.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between p-2.5 rounded-xl bg-gray-50/80 border border-gray-100 text-xs"
-                  >
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <FssaiBadge isVeg={item.label === 'Veg'} size={13} />
-                      <span className="font-bold text-gray-900 truncate">{item.name}</span>
-                      <span className="text-emerald-600 font-extrabold text-[11px]">x{item.quantity}</span>
+              <div className="p-3.5 pt-0 space-y-2.5 bg-white border-t border-gray-100">
+                <div className="divide-y divide-gray-100 pt-1">
+                  {order.items?.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="py-2.5 first:pt-1 last:pb-0 flex items-center justify-between gap-3 text-xs"
+                    >
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <FssaiBadge isVeg={item.label === 'Veg'} size={13} />
+                        <span className="font-bold text-gray-900 truncate">{item.name}</span>
+                        <span className="text-[11px] font-extrabold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded-md border border-orange-100">
+                          {item.quantity}x
+                        </span>
+                      </div>
+                      <span className="font-black text-gray-900 ml-2 shrink-0">
+                        ₹{(item.price * item.quantity).toFixed(0)}
+                      </span>
                     </div>
-                    <span className="font-black text-gray-900 ml-2">
-                      ₹{(item.price * item.quantity).toFixed(0)}
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
 
-                {/* Total Summary Row */}
-                <div className="pt-2 flex justify-between items-center text-xs font-bold border-t border-gray-100">
-                  <span className="text-gray-500">Order Subtotal</span>
-                  <span className="text-emerald-600 font-black text-base">₹{order.totalAmount?.toFixed(2)}</span>
+                {/* Subtotal & Total Bill Summary */}
+                <div className="pt-3 border-t border-gray-100 space-y-1.5">
+                  <div className="flex justify-between items-center text-xs text-gray-500 font-medium">
+                    <span>Items Total ({totalItemCount})</span>
+                    <span>₹{order.totalAmount?.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs text-gray-500 font-medium">
+                    <span>Packaging & Delivery</span>
+                    <span className="text-emerald-600 font-bold uppercase text-[10px]">Free</span>
+                  </div>
+                  <div className="pt-2 flex justify-between items-center text-xs font-bold border-t border-gray-100">
+                    <span className="text-gray-900 font-extrabold text-sm">Grand Total</span>
+                    <span className="text-emerald-600 font-black text-lg">₹{order.totalAmount?.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
             )}

@@ -17,6 +17,7 @@ import ModernDatePicker from '../../shared/components/ModernDatePicker'
 import ModernSelect from '../../shared/components/ModernSelect'
 import { TrendingUp, ShoppingBag, PieChart as PieIcon, Award, Calendar, Filter } from 'lucide-react'
 import logoImg from '../../assets/logo.png'
+import { DATE_RANGES } from '../../shared/constants/index'
 
 const COLORS = ['#ff6b35', '#ffc857', '#3b82f6', '#22c55e', '#8b5cf6', '#ef4444', '#06b6d4']
 
@@ -98,6 +99,25 @@ export default function Dashboard() {
     return `${moment(fromDate).format('DD MMM')} – ${moment(toDate).format('DD MMM YYYY')}`
   }
 
+  const getPeriodSalesTitle = () => {
+    if (activePreset === 'today' || (fromDate === todayStr && toDate === todayStr)) {
+      return 'Today Sales'
+    }
+    if (activePreset === '7days') {
+      return 'Last 7 Days Sales'
+    }
+    if (activePreset === '30days') {
+      return 'Last 30 Days Sales'
+    }
+    if (activePreset === 'thisMonth') {
+      return 'This Month Sales'
+    }
+    if (fromDate === toDate) {
+      return `${moment(fromDate).format('D MMM')} Sales`
+    }
+    return `${moment(fromDate).format('D MMM')} to ${moment(toDate).format('D MMM')} Sales`
+  }
+
   return (
     <div className="space-y-5">
       {/* Header & Logo */}
@@ -120,30 +140,22 @@ export default function Dashboard() {
             </div>
             <div>
               <h3 className="text-sm font-bold text-gray-900 m-0">Date Filter Range</h3>
-              <p className="text-xs text-gray-500 m-0">Filter metrics by time period</p>
             </div>
           </div>
 
           {/* Presets */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            {[
-              { key: 'today', label: 'Today' },
-              { key: '7days', label: 'Last 7 Days' },
-              { key: '30days', label: 'Last 30 Days' },
-              { key: 'thisMonth', label: 'This Month' },
-              { key: 'custom', label: 'Custom Range' },
-            ].map(({ key, label }) => {
+            {DATE_RANGES.map(({ key, label }) => {
               const isActive = activePreset === key
               return (
                 <button
                   key={key}
                   type="button"
                   onClick={() => handlePresetSelect(key)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border-none ${
-                    isActive
-                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20'
-                      : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200/60'
-                  }`}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border-none ${isActive
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20'
+                    : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200/60'
+                    }`}
                 >
                   {label}
                 </button>
@@ -192,7 +204,7 @@ export default function Dashboard() {
         <div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider m-0">Filtered Period Sales</p>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider m-0">{getPeriodSalesTitle()}</p>
               <Calendar size={16} className="text-orange-500" />
             </div>
             <h3 className="text-2xl sm:text-3xl font-black text-gray-900 mt-1 m-0">{totalOrdersThisRange}</h3>
@@ -218,9 +230,9 @@ export default function Dashboard() {
       </div>
 
       {/* Main Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      < div className="grid grid-cols-1 lg:grid-cols-2 gap-5" >
         {/* Item-wise Donut Card */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 shadow-sm min-w-0">
+        < div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 shadow-sm min-w-0" >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-xl bg-orange-50 text-orange-500 shrink-0">
@@ -233,59 +245,61 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {itemData.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-              <p className="text-3xl mb-2 m-0">📊</p>
-              <p className="text-sm font-medium m-0">No orders recorded for selected period</p>
-            </div>
-          ) : (
-            <div className="relative">
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie
-                    data={itemData}
-                    dataKey="count"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={95}
-                    paddingAngle={4}
-                    cornerRadius={6}
-                  >
-                    {itemData.map((_, idx) => (
-                      <Cell
-                        key={idx}
-                        fill={COLORS[idx % COLORS.length]}
-                        stroke="#ffffff"
-                        strokeWidth={2}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const data = payload[0].payload
-                        return (
-                          <div className="bg-slate-900/90 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow-xl border border-white/20">
-                            <p className="m-0 text-amber-400">{data.name}</p>
-                            <p className="m-0 text-white font-bold">{data.count} items sold</p>
-                          </div>
-                        )
-                      }
-                      return null
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-
-              {/* Inner Radial Stat */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-xl sm:text-2xl font-black text-gray-900">{totalOrdersThisRange}</span>
-                <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Total</span>
+          {
+            itemData.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                <p className="text-3xl mb-2 m-0">📊</p>
+                <p className="text-sm font-medium m-0">No orders recorded for selected period</p>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="relative">
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={itemData}
+                      dataKey="count"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={95}
+                      paddingAngle={4}
+                      cornerRadius={6}
+                    >
+                      {itemData.map((_, idx) => (
+                        <Cell
+                          key={idx}
+                          fill={COLORS[idx % COLORS.length]}
+                          stroke="#ffffff"
+                          strokeWidth={2}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload
+                          return (
+                            <div className="bg-slate-900/90 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow-xl border border-white/20">
+                              <p className="m-0 text-amber-400">{data.name}</p>
+                              <p className="m-0 text-white font-bold">{data.count} items sold</p>
+                            </div>
+                          )
+                        }
+                        return null
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                {/* Inner Radial Stat */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                  <span className="text-xl sm:text-2xl font-black text-gray-900">{totalOrdersThisRange}</span>
+                  <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Total</span>
+                </div>
+              </div>
+            )
+          }
 
           {/* Custom Pill Legends */}
           <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-4 justify-center">
@@ -305,10 +319,10 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        </div>
+        </div >
 
         {/* Order Growth Card */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 shadow-sm min-w-0">
+        < div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-6 shadow-sm min-w-0" >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-xl bg-orange-50 text-orange-500 shrink-0">
@@ -374,8 +388,8 @@ export default function Dashboard() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
-      </div>
-    </div>
+        </div >
+      </div >
+    </div >
   )
 }
