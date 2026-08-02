@@ -35,18 +35,18 @@ export default function ConfirmModal({
 
   const variantStyles = {
     danger: {
-      bgIcon: 'bg-red-50 text-red-600 border-red-100',
-      btnConfirm: 'bg-gradient-to-r from-red-500 via-red-600 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-md shadow-red-500/25',
+      bgIcon: 'bg-rose-50 text-rose-600 border-rose-100',
+      btnConfirm: 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs',
       icon: XCircle,
     },
     warning: {
       bgIcon: 'bg-amber-50 text-amber-600 border-amber-100',
-      btnConfirm: 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-md shadow-amber-500/25',
+      btnConfirm: 'bg-amber-600 hover:bg-amber-700 text-white shadow-xs',
       icon: AlertTriangle,
     },
     info: {
-      bgIcon: 'bg-blue-50 text-blue-600 border-blue-100',
-      btnConfirm: 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-md shadow-blue-500/25',
+      bgIcon: 'bg-sky-50 text-sky-600 border-sky-100',
+      btnConfirm: 'bg-sky-600 hover:bg-sky-700 text-white shadow-xs',
       icon: AlertTriangle,
     },
   }

@@ -82,29 +82,27 @@ html, body {
 }
 
 .pill-order-no {
-  @apply inline-flex items-center justify-center px-5 py-2 rounded-full font-bold text-white text-lg;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+  @apply inline-flex items-center justify-center px-4 py-1.5 rounded-xl font-bold text-slate-900 text-sm tracking-wide border border-slate-200 bg-slate-100/80;
 }
 
 .pill-status {
-  @apply inline-flex items-center justify-center px-4 py-1.5 rounded-full font-semibold text-sm text-white capitalize;
+  @apply inline-flex items-center justify-center px-3.5 py-1.5 rounded-xl font-bold text-xs tracking-wider uppercase border transition-all;
 }
 
 .pill-status-new {
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  @apply bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100;
 }
 .pill-status-preparing {
-  background: linear-gradient(135deg, #f59e0b, #f97316);
+  @apply bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100;
 }
 .pill-status-packed {
-  background: linear-gradient(135deg, #8b5cf6, #a855f7);
+  @apply bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100;
 }
 .pill-status-delivered {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
+  @apply bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100;
 }
 .pill-status-cancelled {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  @apply bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100;
 }
 
 .glass-nav {

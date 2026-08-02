@@ -4,33 +4,33 @@ import { Clock, Utensils, PackageCheck, CheckCircle2, XCircle } from 'lucide-rea
 const STATUS_CONFIG = {
   new: {
     icon: Clock,
-    badgeBg: 'bg-blue-50 text-blue-700 border-blue-200/80',
-    dotGlow: 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)] animate-pulse',
-    iconBg: 'bg-blue-100/80 text-blue-600',
+    badgeBg: 'bg-sky-50 text-sky-800 border-sky-200/80',
+    dotGlow: 'bg-sky-500',
+    iconBg: 'bg-sky-100 text-sky-700',
   },
   preparing: {
     icon: Utensils,
-    badgeBg: 'bg-amber-50 text-amber-800 border-amber-200/80',
-    dotGlow: 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)] animate-pulse',
-    iconBg: 'bg-amber-100/80 text-amber-600',
+    badgeBg: 'bg-amber-50 text-amber-900 border-amber-200/80',
+    dotGlow: 'bg-amber-500',
+    iconBg: 'bg-amber-100 text-amber-700',
   },
   packed: {
     icon: PackageCheck,
-    badgeBg: 'bg-purple-50 text-purple-800 border-purple-200/80',
-    dotGlow: 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]',
-    iconBg: 'bg-purple-100/80 text-purple-600',
+    badgeBg: 'bg-indigo-50 text-indigo-800 border-indigo-200/80',
+    dotGlow: 'bg-indigo-500',
+    iconBg: 'bg-indigo-100 text-indigo-700',
   },
   delivered: {
     icon: CheckCircle2,
     badgeBg: 'bg-emerald-50 text-emerald-800 border-emerald-200/80',
-    dotGlow: 'bg-emerald-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]',
-    iconBg: 'bg-emerald-100/80 text-emerald-600',
+    dotGlow: 'bg-emerald-500',
+    iconBg: 'bg-emerald-100 text-emerald-700',
   },
   cancelled: {
     icon: XCircle,
     badgeBg: 'bg-rose-50 text-rose-800 border-rose-200/80',
-    dotGlow: 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]',
-    iconBg: 'bg-rose-100/80 text-rose-600',
+    dotGlow: 'bg-rose-500',
+    iconBg: 'bg-rose-100 text-rose-700',
   },
 }
 

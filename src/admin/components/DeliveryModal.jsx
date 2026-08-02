@@ -45,19 +45,19 @@ export default function DeliveryModal({ isOpen, onClose, order, onConfirm }) {
     <GradientModal isOpen={isOpen} onClose={onClose} title="Confirm Delivery" maxWidth="max-w-lg">
       <OrderDetailsContent order={order} />
 
-      <div className="mt-6 space-y-4">
+      <div className="mt-5 space-y-4 pt-3 border-t border-slate-100">
         <div>
-          <p className="text-sm font-semibold mb-2">Payment Mode</p>
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Payment Mode</p>
           <div className="flex flex-wrap gap-2">
             {PAYMENT_MODES.map((mode) => (
               <button
                 key={mode}
                 type="button"
                 onClick={() => setPaymentMode(mode)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium cursor-pointer border-none transition-all ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all border ${
                   paymentMode === mode
-                    ? 'btn-primary'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
                 }`}
               >
                 {mode}
@@ -67,13 +67,13 @@ export default function DeliveryModal({ isOpen, onClose, order, onConfirm }) {
         </div>
 
         {paymentMode === 'Split' && (
-          <div className="space-y-2">
+          <div className="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200/70">
             {SPLIT_PAYMENT_TYPES.map((type) => (
               <div key={type} className="flex items-center gap-3">
-                <label className="w-12 text-sm font-medium">{type}</label>
+                <label className="w-12 text-xs font-bold text-slate-700">{type}</label>
                 <input
                   type="number"
-                  className="input-field"
+                  className="input-field !py-1.5 text-xs font-semibold"
                   placeholder="0"
                   min="0"
                   value={splitDetails[type]}
@@ -83,17 +83,17 @@ export default function DeliveryModal({ isOpen, onClose, order, onConfirm }) {
                 />
               </div>
             ))}
-            <p className="text-sm text-gray-500">
-              Split total: ₹{splitTotal.toFixed(2)} / ₹{total.toFixed(2)}
+            <p className="text-xs font-semibold text-slate-500 m-0 pt-1">
+              Split total: <span className={Math.abs(splitTotal - total) < 0.01 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}>₹{splitTotal.toFixed(2)}</span> / ₹{total.toFixed(2)}
             </p>
           </div>
         )}
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-rose-600 text-xs font-bold">{error}</p>}
 
-        <div className="flex gap-3 justify-end pt-2">
-          <button onClick={onClose} className="btn-outline">Cancel</button>
-          <button onClick={handleConfirm} disabled={submitting} className="btn-primary">
+        <div className="flex gap-2 sm:gap-3 justify-end pt-2 flex-col-reverse sm:flex-row">
+          <button onClick={onClose} className="btn-outline w-full sm:w-auto !py-2.5 text-xs sm:text-sm">Cancel</button>
+          <button onClick={handleConfirm} disabled={submitting} className="btn-primary w-full sm:w-auto !py-2.5 text-xs sm:text-sm font-bold">
             {submitting ? 'Confirming...' : 'Confirm Delivery'}
           </button>
         </div>

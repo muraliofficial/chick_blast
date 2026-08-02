@@ -11,11 +11,18 @@ import DeliveryModal from '../components/DeliveryModal'
 import ConfirmModal from '../components/ConfirmModal'
 import Toast, { useToast } from '../../shared/components/Toast'
 import Loader from '../../shared/components/Loader'
+import StatusActionMenu from '../components/StatusActionMenu'
 
 const ACTION_ICONS = {
   preparing: Utensils,
   packed: Package,
   delivered: CheckCircle2,
+}
+
+const ACTION_BUTTON_STYLES = {
+  preparing: 'bg-amber-600 hover:bg-amber-700 text-white shadow-xs border-none',
+  packed: 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs border-none',
+  delivered: 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs border-none',
 }
 
 export default function LiveOrders() {
@@ -46,6 +53,29 @@ export default function LiveOrders() {
     }, 5000)
     return () => clearInterval(interval)
   }, [fetchOrders])
+
+  const handleDropdownSelect = async (order, targetStatus) => {
+    if (!targetStatus) return
+    if (targetStatus === 'delivered') {
+      setDeliveryOrder(order)
+      return
+    }
+    if (targetStatus === 'cancelled') {
+      setCancelModalOrder(order)
+      return
+    }
+
+    setActionLoading(order.id)
+    try {
+      await ordersApi.updateStatus(order.id, targetStatus)
+      await fetchOrders()
+      showToast(`Order #${order.orderNo} updated to ${STATUS_LABELS[targetStatus] || targetStatus}!`, 'success')
+    } catch (err) {
+      showToast(err.message, 'error')
+    } finally {
+      setActionLoading(null)
+    }
+  }
 
   const handleRefresh = async () => {
     setRefreshing(true)
@@ -129,30 +159,30 @@ export default function LiveOrders() {
       <Toast toast={toast} onClose={hideToast} />
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 m-0">Live Orders</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-slate-900 m-0">Live Orders</h2>
             <span className="flex h-2.5 w-2.5 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
           </div>
-          <p className="text-xs md:text-sm text-gray-500 mt-0.5 m-0">Auto-refreshing every 5 seconds</p>
+          <p className="text-xs text-slate-500 mt-0.5 m-0 hidden sm:block">Auto-refreshing every 5 seconds</p>
         </div>
 
         <button
           onClick={handleRefresh}
           disabled={refreshing}
-          className="btn-primary self-start sm:self-auto !py-2 !px-4 flex items-center justify-center gap-2 text-sm font-semibold shadow-sm cursor-pointer"
+          className="btn-primary !py-2 !px-3.5 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold shadow-xs cursor-pointer"
         >
-          <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+          <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
           <span>Refresh</span>
         </button>
       </div>
 
       {/* Status Filter Tabs (Horizontal Scrollable on Mobile) */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar border-b border-gray-200">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar border-b border-slate-200">
         {[
           { key: 'all', label: 'All Active' },
           { key: 'new', label: 'Ordered' },
@@ -165,15 +195,17 @@ export default function LiveOrders() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 whitespace-nowrap border-none cursor-pointer transition-all ${isActive
-                ? 'bg-gray-900 text-white shadow-md'
-                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
-                }`}
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 whitespace-nowrap border cursor-pointer transition-all ${
+                isActive
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                  : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200'
+              }`}
             >
               <span>{tab.label}</span>
               <span
-                className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${isActive ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600'
-                  }`}
+                className={`px-2 py-0.5 rounded-full text-[11px] font-extrabold ${
+                  isActive ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-600'
+                }`}
               >
                 {count}
               </span>
@@ -183,21 +215,21 @@ export default function LiveOrders() {
       </div>
 
       {/* Orders Container */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         {loading ? (
           <div className="py-12">
             <Loader fullScreen={false} size="sm" text="Fetching live orders..." subtext="" />
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="text-center py-12 px-4">
-            <ShoppingBag size={40} className="mx-auto text-gray-300 mb-2" />
-            <p className="text-gray-500 font-medium m-0">No active live orders right now</p>
-            <p className="text-xs text-gray-400 m-0 mt-1">New incoming orders will appear here automatically</p>
+            <ShoppingBag size={40} className="mx-auto text-slate-300 mb-2" />
+            <p className="text-slate-600 font-semibold m-0">No active live orders right now</p>
+            <p className="text-xs text-slate-400 m-0 mt-1">New incoming orders will appear here automatically</p>
           </div>
         ) : (
           <>
             {/* Mobile View Cards (block md:hidden) */}
-            <div className="block md:hidden divide-y divide-gray-100">
+            <div className="block md:hidden divide-y divide-slate-100">
               {filteredOrders.map((order) => {
                 const action = STATUS_ACTIONS[order.status]
                 const ActionIcon = action ? ACTION_ICONS[action.next] || Sparkles : null
@@ -207,13 +239,13 @@ export default function LiveOrders() {
                   <div
                     key={order.id}
                     onClick={() => setSelectedOrder(order)}
-                    className="p-4 hover:bg-orange-50/40 active:bg-orange-50 transition-colors cursor-pointer space-y-3"
+                    className="p-3.5 sm:p-4 hover:bg-slate-50/80 active:bg-slate-100/60 transition-colors cursor-pointer space-y-3"
                   >
-                    {/* Top Row: Order No, Status Pill, Elapsed Time */}
-                    <div className="flex items-center justify-between gap-2">
+                    {/* Top Row: Order No, Elapsed Time, Status Pill */}
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div className="flex items-center gap-2">
                         <OrderBadge orderNo={order.orderNo} />
-                        <span className="text-[11px] text-gray-500 font-medium">
+                        <span className="text-[11px] text-slate-400 font-medium">
                           {moment(order.createdAt).fromNow()}
                         </span>
                       </div>
@@ -221,63 +253,46 @@ export default function LiveOrders() {
                     </div>
 
                     {/* Customer & Items Summary */}
-                    <div className="space-y-1">
+                    <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-sm text-gray-900">{order.customerName}</span>
-                        <span className="font-bold text-sm text-orange-600">
+                        <span className="font-bold text-sm text-slate-900 truncate pr-2">{order.customerName}</span>
+                        <span className="font-extrabold text-sm text-slate-900 shrink-0">
                           ₹{(order.totalAmount || 0).toFixed(2)}
                         </span>
                       </div>
-                      <a
-                        href={`tel:${order.customerMobile}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-orange-600 no-underline"
-                      >
-                        <Phone size={12} />
-                        <span>{order.customerMobile}</span>
-                      </a>
+                      <div>
+                        <a
+                          href={`tel:${order.customerMobile}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-100 text-xs font-medium text-slate-700 hover:text-orange-600 no-underline"
+                        >
+                          <Phone size={12} className="text-slate-500" />
+                          <span>{order.customerMobile}</span>
+                        </a>
+                      </div>
                     </div>
 
                     {/* Items preview snippet */}
                     {order.items && order.items.length > 0 && (
-                      <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded-xl flex items-center justify-between gap-2">
-                        <span className="line-clamp-1 font-medium">
+                      <div className="text-xs text-slate-600 bg-slate-50 border border-slate-100 p-2.5 rounded-xl flex items-center justify-between gap-2">
+                        <span className="line-clamp-1 font-medium text-slate-700">
                           {order.items.map((i) => `${i.name} (x${i.quantity})`).join(', ')}
                         </span>
-                        <ChevronRight size={14} className="text-gray-400 shrink-0" />
+                        <ChevronRight size={14} className="text-slate-400 shrink-0" />
                       </div>
                     )}
 
                     {/* Action Bar */}
                     <div
-                      className="flex items-center gap-2 pt-1 border-t border-gray-100"
+                      className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      {action && (
-                        <button
-                          onClick={(e) => handleStatusUpdate(order, e)}
-                          disabled={isLoadingThis}
-                          className={`flex-1 pill-status pill-status-${action.next} !py-2.5 !px-3 !text-xs font-bold shadow-sm border-none cursor-pointer rounded-xl flex items-center justify-center gap-1.5 transition-transform active:scale-95`}
-                        >
-                          {isLoadingThis ? (
-                            <RefreshCw size={14} className="animate-spin" />
-                          ) : (
-                            ActionIcon && <ActionIcon size={15} />
-                          )}
-                          <span>Mark as {action.label}</span>
-                        </button>
-                      )}
-
-                      {order.status !== 'cancelled' && order.status !== 'delivered' && (
-                        <button
-                          onClick={(e) => handleCancel(order, e)}
-                          disabled={isLoadingThis}
-                          className="pill-status pill-status-cancelled !py-2.5 !px-3 !text-xs font-bold border-none cursor-pointer rounded-xl flex items-center justify-center gap-1 transition-transform active:scale-95 shrink-0"
-                        >
-                          <XCircle size={15} />
-                          <span>Cancel</span>
-                        </button>
-                      )}
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Update Status</span>
+                      <StatusActionMenu
+                        order={order}
+                        onSelectAction={handleDropdownSelect}
+                        loading={isLoadingThis}
+                      />
                     </div>
                   </div>
                 )
@@ -300,48 +315,24 @@ export default function LiveOrders() {
                 </thead>
                 <tbody>
                   {filteredOrders.map((order) => {
-                    const action = STATUS_ACTIONS[order.status]
-                    const ActionIcon = action ? ACTION_ICONS[action.next] || Sparkles : null
                     const isLoadingThis = actionLoading === order.id
 
                     return (
                       <tr key={order.id} onClick={() => setSelectedOrder(order)}>
-                        <td>{moment(order.createdAt).format('DD MMM, hh:mm A')}</td>
+                        <td className="text-slate-500 font-medium">{moment(order.createdAt).format('DD MMM, hh:mm A')}</td>
                         <td><OrderBadge orderNo={order.orderNo} /></td>
-                        <td className="font-medium text-gray-900">{order.customerName}</td>
-                        <td className="text-gray-600">{order.customerMobile}</td>
-                        <td className="font-bold text-gray-900">
+                        <td className="font-bold text-slate-900">{order.customerName}</td>
+                        <td className="text-slate-600 font-medium">{order.customerMobile}</td>
+                        <td className="font-extrabold text-slate-900">
                           ₹{(order.totalAmount || 0).toFixed(2)}
                         </td>
                         <td><StatusPill status={order.status} /></td>
                         <td onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center gap-2">
-                            {action && (
-                              <button
-                                onClick={(e) => handleStatusUpdate(order, e)}
-                                disabled={isLoadingThis}
-                                className={`pill-status pill-status-${action.next} !px-3.5 !py-2 !text-xs font-bold shadow-md border-none cursor-pointer hover:scale-105 transition-all flex items-center gap-1.5`}
-                              >
-                                {isLoadingThis ? (
-                                  <RefreshCw size={14} className="animate-spin" />
-                                ) : (
-                                  ActionIcon && <ActionIcon size={14} />
-                                )}
-                                <span>Mark {action.label}</span>
-                              </button>
-                            )}
-                            {order.status !== 'cancelled' && order.status !== 'delivered' && (
-                              <button
-                                onClick={(e) => handleOpenCancelModal(order, e)}
-                                disabled={isLoadingThis}
-                                title="Cancel Order"
-                                className="pill-status pill-status-cancelled !px-2.5 !py-2 !text-xs font-semibold shadow-md border-none cursor-pointer hover:scale-105 transition-all flex items-center gap-1"
-                              >
-                                <XCircle size={14} />
-                                <span>Cancel</span>
-                              </button>
-                            )}
-                          </div>
+                          <StatusActionMenu
+                            order={order}
+                            onSelectAction={handleDropdownSelect}
+                            loading={isLoadingThis}
+                          />
                         </td>
                       </tr>
                     )

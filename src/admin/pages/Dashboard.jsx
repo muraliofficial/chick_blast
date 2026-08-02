@@ -132,14 +132,14 @@ export default function Dashboard() {
       </div>
 
       {/* Date Range Filter Bar */}
-      <div className="bg-white border border-gray-100 rounded-2xl p-3.5 sm:p-4 shadow-sm space-y-3">
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-3.5 sm:p-4 shadow-2xs space-y-3">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-orange-50 text-orange-500 shrink-0">
+            <div className="p-2 rounded-xl bg-slate-100 text-slate-700 shrink-0">
               <Filter size={18} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-900 m-0">Date Filter Range</h3>
+              <h3 className="text-sm font-bold text-slate-900 m-0">Date Filter Range</h3>
             </div>
           </div>
 
@@ -152,10 +152,11 @@ export default function Dashboard() {
                   key={key}
                   type="button"
                   onClick={() => handlePresetSelect(key)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border-none ${isActive
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20'
-                    : 'bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200/60'
-                    }`}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                    isActive
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                  }`}
                 >
                   {label}
                 </button>
@@ -166,7 +167,7 @@ export default function Dashboard() {
 
         {/* Custom Range Picker Inputs */}
         {activePreset === 'custom' && (
-          <div className="pt-2 border-t border-gray-100 flex flex-col sm:flex-row items-center gap-3 animate-in fade-in duration-150">
+          <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-3 animate-in fade-in duration-150">
             <div className="w-full sm:w-48">
               <ModernDatePicker
                 label="From Date"
@@ -174,7 +175,7 @@ export default function Dashboard() {
                 onChange={(d) => setFromDate(d || todayStr)}
               />
             </div>
-            <div className="hidden sm:block text-gray-400 font-medium text-xs mt-4">—</div>
+            <div className="hidden sm:block text-slate-400 font-medium text-xs mt-4">—</div>
             <div className="w-full sm:w-48">
               <ModernDatePicker
                 label="To Date"
@@ -189,41 +190,41 @@ export default function Dashboard() {
       {/* Top Stat Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4">
         {/* Card 1 */}
-        <div className="bg-gradient-to-br from-orange-500 to-amber-500 text-white rounded-2xl p-4 sm:p-5 shadow-lg shadow-orange-500/20 relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-md relative overflow-hidden flex flex-col justify-between">
           <div className="relative z-10">
-            <p className="text-xs font-medium text-orange-100 uppercase tracking-wider m-0">Total Monthly Orders</p>
+            <p className="text-xs font-bold text-slate-300 uppercase tracking-wider m-0">Total Monthly Orders</p>
             <h3 className="text-2xl sm:text-3xl font-black mt-1 m-0">{totalOrders}</h3>
-            <p className="text-xs text-orange-100/90 mt-2 flex items-center gap-1 m-0">
-              <TrendingUp size={14} /> {activeDays} active sales days
+            <p className="text-xs text-slate-300 mt-2 flex items-center gap-1 m-0">
+              <TrendingUp size={14} className="text-emerald-400" /> {activeDays} active sales days
             </p>
           </div>
-          <ShoppingBag className="absolute right-2 bottom-1 w-20 h-20 text-white/10 pointer-events-none" />
+          <ShoppingBag className="absolute right-2 bottom-1 w-20 h-20 text-white/5 pointer-events-none" />
         </div>
 
         {/* Card 2 */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider m-0">{getPeriodSalesTitle()}</p>
-              <Calendar size={16} className="text-orange-500" />
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider m-0">{getPeriodSalesTitle()}</p>
+              <Calendar size={16} className="text-slate-500" />
             </div>
-            <h3 className="text-2xl sm:text-3xl font-black text-gray-900 mt-1 m-0">{totalOrdersThisRange}</h3>
+            <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1 m-0">{totalOrdersThisRange}</h3>
           </div>
-          <p className="text-xs text-gray-500 mt-2 m-0 truncate">Items ordered ({getDateRangeLabel()})</p>
+          <p className="text-xs text-slate-500 mt-2 m-0 truncate">Items ordered ({getDateRangeLabel()})</p>
         </div>
 
         {/* Card 3 */}
-        <div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-between sm:col-span-2 md:col-span-1">
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs flex flex-col justify-between sm:col-span-2 md:col-span-1">
           <div>
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider m-0">Top Performing Item</p>
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider m-0">Top Performing Item</p>
               <Award size={16} className="text-amber-500" />
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mt-1 m-0 truncate">
+            <h3 className="text-lg sm:text-xl font-bold text-slate-900 mt-1 m-0 truncate">
               {itemData[0]?.name || 'N/A'}
             </h3>
           </div>
-          <p className="text-xs text-emerald-600 font-semibold mt-2 m-0">
+          <p className="text-xs text-emerald-600 font-bold mt-2 m-0">
             {itemData[0] ? `${itemData[0].count} orders sold` : 'No sales recorded'}
           </p>
         </div>

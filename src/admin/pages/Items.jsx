@@ -213,32 +213,32 @@ export default function Items() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 m-0">Items</h2>
-          <p className="text-xs md:text-sm text-gray-500 mt-0.5 m-0">Manage food items & menu pricing</p>
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900 m-0">Items</h2>
+          <p className="text-xs md:text-sm text-slate-500 mt-0.5 m-0">Manage food items & menu pricing</p>
         </div>
-        <button onClick={openAdd} className="btn-primary self-start sm:self-auto !py-2.5 !px-5 flex items-center justify-center gap-2 font-bold shadow-md shadow-orange-500/20 cursor-pointer">
+        <button onClick={openAdd} className="btn-primary self-start sm:self-auto !py-2.5 !px-5 flex items-center justify-center gap-2 font-bold shadow-xs cursor-pointer">
           <Plus size={18} /> Add Item
         </button>
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white border border-gray-100 p-3.5 sm:p-4 rounded-2xl shadow-sm space-y-3">
+      <div className="bg-white border border-slate-200/80 p-3.5 sm:p-4 rounded-2xl shadow-2xs space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search items by name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-slate-800 focus:bg-white transition-all font-medium"
             />
           </div>
           <div className="flex gap-2">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:border-orange-500 cursor-pointer"
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-700 focus:outline-none focus:border-slate-800 cursor-pointer"
             >
               <option value="All">All Categories</option>
               {CATEGORIES.map((c) => (
@@ -248,7 +248,7 @@ export default function Items() {
             <select
               value={selectedLabel}
               onChange={(e) => setSelectedLabel(e.target.value)}
-              className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:border-orange-500 cursor-pointer"
+              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-700 focus:outline-none focus:border-slate-800 cursor-pointer"
             >
               <option value="All">All Diets</option>
               {LABELS.map((l) => (
@@ -260,30 +260,30 @@ export default function Items() {
       </div>
 
       {/* Items Container */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         {loading ? (
           <div className="py-12">
             <Loader fullScreen={false} size="sm" text="Loading items..." subtext="" />
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="text-center py-12 px-4">
-            <Package size={40} className="mx-auto text-gray-300 mb-2" />
-            <p className="text-gray-500 font-medium m-0">No items found</p>
-            <p className="text-xs text-gray-400 m-0 mt-1">Try adjusting your search query or filters</p>
+            <Package size={40} className="mx-auto text-slate-300 mb-2" />
+            <p className="text-slate-600 font-semibold m-0">No items found</p>
+            <p className="text-xs text-slate-400 m-0 mt-1">Try adjusting your search query or filters</p>
           </div>
         ) : (
           <>
             {/* Mobile View: Cards Grid (block md:hidden) */}
-            <div className="block md:hidden divide-y divide-gray-100">
+            <div className="block md:hidden divide-y divide-slate-100">
               {filteredItems.map((item) => (
                 <div
                   key={item.id}
-                  className={`p-4 flex items-center justify-between gap-3 ${
-                    item.isActive === false ? 'bg-gray-50/70 opacity-70' : ''
+                  className={`p-3.5 sm:p-4 flex items-center justify-between gap-3 ${
+                    item.isActive === false ? 'bg-slate-50/70 opacity-70' : ''
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-100 relative">
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-200/80 relative">
                       {item.imageUrl ? (
                         <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
@@ -294,19 +294,19 @@ export default function Items() {
                       </div>
                     </div>
                     <div className="min-w-0">
-                      <h4 className="font-bold text-sm text-gray-900 m-0 truncate">{item.name}</h4>
-                      <p className="text-xs text-gray-500 m-0 mt-0.5">{item.category}</p>
-                      <p className="font-extrabold text-sm text-orange-600 m-0 mt-1">₹{item.price}</p>
+                      <h4 className="font-bold text-sm text-slate-900 m-0 truncate">{item.name}</h4>
+                      <p className="text-xs text-slate-500 font-medium m-0 mt-0.5">{item.category}</p>
+                      <p className="font-black text-sm text-slate-900 m-0 mt-1">₹{item.price}</p>
                     </div>
                   </div>
 
                   <div className="flex flex-col items-end gap-2 shrink-0">
                     {item.isActive === false ? (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-200 text-gray-600">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
                         Hidden
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80">
                         Visible
                       </span>
                     )}
@@ -315,20 +315,20 @@ export default function Items() {
                       <button
                         onClick={() => toggleHide(item)}
                         title={item.isActive === false ? 'Unhide item' : 'Hide item'}
-                        className={`p-2 rounded-xl cursor-pointer border-none transition-colors ${
+                        className={`p-2 rounded-xl cursor-pointer border transition-colors ${
                           item.isActive === false
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-gray-100 text-gray-600'
+                            ? 'bg-amber-50 text-amber-800 border-amber-200'
+                            : 'bg-slate-100 text-slate-600 border-slate-200'
                         }`}
                       >
-                        {item.isActive === false ? <EyeOff size={16} /> : <Eye size={16} />}
+                        {item.isActive === false ? <EyeOff size={15} /> : <Eye size={15} />}
                       </button>
                       <button
                         onClick={() => openEdit(item)}
                         title="Edit item"
-                        className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer border-none"
+                        className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 cursor-pointer"
                       >
-                        <Pencil size={16} />
+                        <Pencil size={15} />
                       </button>
                     </div>
                   </div>
