@@ -10,6 +10,7 @@ import {
   X,
   Globe,
 } from 'lucide-react'
+import DeveloperSignature from '../../shared/components/DeveloperSignature'
 import logoImg from '../../assets/logo.png'
 import '../../styles/admin.css'
 
@@ -55,6 +56,7 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
+        <DeveloperSignature variant="sidebar" />
       </aside>
 
       <div className="admin-main">

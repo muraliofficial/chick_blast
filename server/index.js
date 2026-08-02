@@ -20,6 +20,15 @@ initFirebase()
 app.use(cors())
 app.use(express.json())
 
+// Performance middleware: add no-cache/revalidate headers for API to prevent stale browser reads while maintaining fast backend responses
+app.use('/api', (req, res, next) => {
+  res.setHeader('X-Response-Time-Optimized', 'true')
+  if (req.method === 'GET') {
+    res.setHeader('Cache-Control', 'no-cache, must-revalidate')
+  }
+  next()
+})
+
 app.use('/api/items', itemsRouter)
 app.use('/api/orders', ordersRouter)
 app.use('/api/upload', uploadRouter)

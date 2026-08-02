@@ -1,6 +1,23 @@
 import { getDb } from '../../config/firebase.js'
 import { ORDER_STATUSES, getTodayDate } from '../orders/model.js'
 
+const dashboardCache = new Map()
+const DASHBOARD_CACHE_TTL = 30 * 1000 // 30 seconds
+
+function getCached(key) {
+  const item = dashboardCache.get(key)
+  if (!item) return null
+  if (Date.now() - item.time > DASHBOARD_CACHE_TTL) {
+    dashboardCache.delete(key)
+    return null
+  }
+  return item.data
+}
+
+function setCache(key, data) {
+  dashboardCache.set(key, { data, time: Date.now() })
+}
+
 export async function fetchItemOrderCounts(opts) {
   const db = getDb()
   let fromDate = getTodayDate()
@@ -17,6 +34,10 @@ export async function fetchItemOrderCounts(opts) {
       toDate = opts.date
     }
   }
+
+  const cacheKey = `counts_${fromDate}_${toDate}`
+  const cached = getCached(cacheKey)
+  if (cached) return cached
 
   if (!db) {
     return []
@@ -40,9 +61,12 @@ export async function fetchItemOrderCounts(opts) {
     })
   })
 
-  return Object.entries(counts)
+  const result = Object.entries(counts)
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count)
+
+  setCache(cacheKey, result)
+  return result
 }
 
 export async function fetchOrderGrowth(month, year) {
@@ -53,6 +77,10 @@ export async function fetchOrderGrowth(month, year) {
   const fromDate = `${targetYear}-${monthStr}-01`
   const lastDay = new Date(targetYear, targetMonth, 0).getDate()
   const toDate = `${targetYear}-${monthStr}-${String(lastDay).padStart(2, '0')}`
+
+  const cacheKey = `growth_${targetYear}_${targetMonth}`
+  const cached = getCached(cacheKey)
+  if (cached) return cached
 
   if (!db) {
     const result = []
@@ -83,5 +111,6 @@ export async function fetchOrderGrowth(month, year) {
     result.push({ date: dateStr, count: dayCounts[dateStr] || 0 })
   }
 
+  setCache(cacheKey, result)
   return result
 }

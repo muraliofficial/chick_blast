@@ -374,21 +374,54 @@ function serializeDoc(doc) {
   }
 }
 
+// In-memory cache for items collection
+let cachedItems = null
+let cacheTimestamp = 0
+const CACHE_TTL_MS = 60 * 1000 // 1 minute TTL fallback, auto-invalidated on write
+
+export function invalidateItemsCache() {
+  cachedItems = null
+  cacheTimestamp = 0
+}
+
+async function getAllItemsCached(db) {
+  const now = Date.now()
+  if (cachedItems && now - cacheTimestamp < CACHE_TTL_MS) {
+    return cachedItems
+  }
+
+  if (!db) {
+    cachedItems = [...memoryItems]
+    cacheTimestamp = now
+    return cachedItems
+  }
+
+  let snapshot = await db.collection('items').get()
+  if (snapshot.empty) {
+    const batch = db.batch()
+    memoryItems.forEach((item) => {
+      const docRef = db.collection('items').doc(item.id)
+      batch.set(docRef, {
+        ...item,
+        createdAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
+        updatedAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
+      })
+    })
+    await batch.commit()
+    snapshot = await db.collection('items').get()
+  }
+
+  cachedItems = snapshot.docs.map(serializeDoc)
+  cacheTimestamp = now
+  return cachedItems
+}
+
 export async function getNextItemId(db, itemType = 'item') {
   const prefix = itemType === 'combo' ? 'combo-' : 'item-'
-  if (!db) {
-    const matches = memoryItems
-      .filter((i) => i.id && i.id.startsWith(prefix))
-      .map((i) => parseInt(i.id.replace(prefix, ''), 10))
-      .filter((n) => !isNaN(n))
-    const max = matches.length > 0 ? Math.max(...matches) : 0
-    return `${prefix}${max + 1}`
-  }
-  const snapshot = await db.collection('items').get()
-  const matches = snapshot.docs
-    .map((doc) => doc.id)
-    .filter((id) => id.startsWith(prefix))
-    .map((id) => parseInt(id.replace(prefix, ''), 10))
+  const items = await getAllItemsCached(db)
+  const matches = items
+    .filter((i) => i.id && i.id.startsWith(prefix))
+    .map((i) => parseInt(i.id.replace(prefix, ''), 10))
     .filter((n) => !isNaN(n))
   const max = matches.length > 0 ? Math.max(...matches) : 0
   return `${prefix}${max + 1}`
@@ -396,27 +429,7 @@ export async function getNextItemId(db, itemType = 'item') {
 
 export async function fetchItems({ type, includeInactive } = {}) {
   const db = getDb()
-  let items = []
-
-  if (!db) {
-    items = [...memoryItems]
-  } else {
-    let snapshot = await db.collection('items').get()
-    if (snapshot.empty) {
-      const batch = db.batch()
-      memoryItems.forEach((item) => {
-        const docRef = db.collection('items').doc(item.id)
-        batch.set(docRef, {
-          ...item,
-          createdAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
-          updatedAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
-        })
-      })
-      await batch.commit()
-      snapshot = await db.collection('items').get()
-    }
-    items = snapshot.docs.map(serializeDoc)
-  }
+  let items = await getAllItemsCached(db)
 
   if (type) {
     items = items.filter((i) => i.type === type)
@@ -425,36 +438,13 @@ export async function fetchItems({ type, includeInactive } = {}) {
     items = items.filter((i) => i.isActive !== false)
   }
 
-  items.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-  return items
+  return [...items].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
 }
 
 export async function fetchAllItemsAdmin() {
   const db = getDb()
-  let items = []
-
-  if (!db) {
-    items = [...memoryItems]
-  } else {
-    let snapshot = await db.collection('items').get()
-    if (snapshot.empty) {
-      const batch = db.batch()
-      memoryItems.forEach((item) => {
-        const docRef = db.collection('items').doc(item.id)
-        batch.set(docRef, {
-          ...item,
-          createdAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
-          updatedAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
-        })
-      })
-      await batch.commit()
-      snapshot = await db.collection('items').get()
-    }
-    items = snapshot.docs.map(serializeDoc)
-  }
-
-  items.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-  return items
+  let items = await getAllItemsCached(db)
+  return [...items].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
 }
 
 export async function createItemInDb(itemData) {
@@ -462,28 +452,10 @@ export async function createItemInDb(itemData) {
   const itemType = type || 'item'
   const db = getDb()
   const customId = await getNextItemId(db, itemType)
+  const isoNow = new Date().toISOString()
 
-  if (!db) {
-    const newItem = {
-      id: customId,
-      name,
-      unit: unit || 'pc',
-      category: category || 'Fried Chicken',
-      label: label || 'Non-Veg',
-      price: Number(price),
-      description: description || '',
-      imageUrl: imageUrl || '',
-      type: itemType,
-      comboItemIds: comboItemIds || [],
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-    memoryItems.push(newItem)
-    return newItem
-  }
-
-  const item = {
+  const newItem = {
+    id: customId,
     name,
     unit: unit || 'pc',
     category: category || 'Fried Chicken',
@@ -494,35 +466,43 @@ export async function createItemInDb(itemData) {
     type: itemType,
     comboItemIds: comboItemIds || [],
     isActive: true,
-    createdAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
-    updatedAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
+    createdAt: isoNow,
+    updatedAt: isoNow,
   }
 
-  const docRef = db.collection('items').doc(customId)
-  await docRef.set(item)
-  const created = await docRef.get()
-  return serializeDoc(created)
+  if (!db) {
+    memoryItems.push(newItem)
+  } else {
+    const docRef = db.collection('items').doc(customId)
+    await docRef.set({
+      ...newItem,
+      createdAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
+      updatedAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
+    })
+  }
+
+  invalidateItemsCache()
+  return newItem
 }
 
 export async function updateItemInDb(id, updatePayload) {
   const db = getDb()
+  const isoNow = new Date().toISOString()
 
   if (!db) {
     const index = memoryItems.findIndex((i) => i.id === id)
     if (index === -1) return null
 
-    const updates = { ...updatePayload, updatedAt: new Date().toISOString() }
+    const updates = { ...updatePayload, updatedAt: isoNow }
     delete updates.id
     delete updates.createdAt
 
     memoryItems[index] = { ...memoryItems[index], ...updates }
+    invalidateItemsCache()
     return memoryItems[index]
   }
 
   const docRef = db.collection('items').doc(id)
-  const doc = await docRef.get()
-  if (!doc.exists) return null
-
   const updates = {
     ...updatePayload,
     updatedAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
@@ -531,8 +511,8 @@ export async function updateItemInDb(id, updatePayload) {
   delete updates.createdAt
 
   await docRef.update(updates)
-  const updated = await docRef.get()
-  return serializeDoc(updated)
+  invalidateItemsCache()
+  return { id, ...updatePayload, updatedAt: isoNow }
 }
 
 export async function deleteItemInDb(id) {
@@ -542,13 +522,12 @@ export async function deleteItemInDb(id) {
     const index = memoryItems.findIndex((i) => i.id === id)
     if (index === -1) return false
     memoryItems.splice(index, 1)
+    invalidateItemsCache()
     return true
   }
 
   const docRef = db.collection('items').doc(id)
-  const doc = await docRef.get()
-  if (!doc.exists) return false
-
   await docRef.delete()
+  invalidateItemsCache()
   return true
 }

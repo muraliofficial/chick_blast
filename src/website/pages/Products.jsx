@@ -180,7 +180,7 @@ export default function Products() {
   }
 
   return (
-    <div className="space-y-4 pb-24 relative">
+    <div className="space-y-4 pb-4 relative">
       {/* Sticky Glassmorphic Search & Filter Bar */}
       <div className="sticky top-[60px] sm:top-[72px] z-30 -mx-4 px-4 py-3 bg-white/95 backdrop-blur-xl border-b border-gray-200/60 shadow-xs space-y-3 transition-all">
         <div className="max-w-6xl mx-auto space-y-2.5">
@@ -308,7 +308,7 @@ export default function Products() {
                   onClick={() => toggleCategory(catName)}
                   className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 bg-white hover:bg-gray-50/80 transition-colors border-none cursor-pointer text-left group"
                 >
-                  <h3 className="text-sm sm:text-base font-extrabold text-gray-900 m-0 group-hover:text-orange-600 transition-colors">
+                  <h3 className="text-sm sm:text-base font-extrabold text-gray-500 m-0 group-hover:text-orange-600 transition-colors">
                     {catName} ({catItems.length})
                   </h3>
 
@@ -330,17 +330,6 @@ export default function Products() {
           })}
         </div>
       )}
-
-      {/* Floating Dark Swiggy-Style "MENU / CATEGORIES" Button */}
-      <div className="fixed bottom-24 right-5 z-40">
-        <button
-          onClick={() => setShowMenuDrawer(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-950/30 border border-slate-700/60 font-black text-xs tracking-wider uppercase cursor-pointer active:scale-95 transition-all"
-        >
-          <UtensilsCrossed size={16} className="text-amber-400" />
-          <span>MENU</span>
-        </button>
-      </div>
 
       {/* Floating Quick Category Drawer / Modal */}
       {showMenuDrawer && (

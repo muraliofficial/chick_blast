@@ -2,6 +2,7 @@ import { Outlet, Link, NavLink } from 'react-router-dom'
 import { ShoppingCart } from 'lucide-react'
 import BottomNav from '../components/BottomNav'
 import { useCart } from '../../shared/context/CartContext'
+import DeveloperSignature from '../../shared/components/DeveloperSignature'
 import logoImg from '../../assets/logo.png'
 import '../../styles/website.css'
 
@@ -36,8 +37,7 @@ export default function WebsiteLayout() {
               to="/"
               end
               className={({ isActive }) =>
-                `text-sm font-semibold no-underline transition-colors ${
-                  isActive ? 'text-orange-500 font-bold' : 'text-gray-600 hover:text-gray-900'
+                `text-sm font-semibold no-underline transition-colors ${isActive ? 'text-orange-500 font-bold' : 'text-gray-600 hover:text-gray-900'
                 }`
               }
             >
@@ -46,8 +46,7 @@ export default function WebsiteLayout() {
             <NavLink
               to="/cart"
               className={({ isActive }) =>
-                `text-sm font-semibold no-underline transition-colors ${
-                  isActive ? 'text-orange-500 font-bold' : 'text-gray-600 hover:text-gray-900'
+                `text-sm font-semibold no-underline transition-colors ${isActive ? 'text-orange-500 font-bold' : 'text-gray-600 hover:text-gray-900'
                 }`
               }
             >
@@ -56,8 +55,7 @@ export default function WebsiteLayout() {
             <NavLink
               to="/order-status"
               className={({ isActive }) =>
-                `text-sm font-semibold no-underline transition-colors ${
-                  isActive ? 'text-orange-500 font-bold' : 'text-gray-600 hover:text-gray-900'
+                `text-sm font-semibold no-underline transition-colors ${isActive ? 'text-orange-500 font-bold' : 'text-gray-600 hover:text-gray-900'
                 }`
               }
             >
@@ -89,6 +87,9 @@ export default function WebsiteLayout() {
       <main className="website-main">
         <Outlet />
       </main>
+
+      {/* Developer Signature & Portfolio Footer */}
+      <DeveloperSignature />
 
       {/* Mobile Bottom Navigation */}
       <BottomNav />

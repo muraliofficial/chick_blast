@@ -104,17 +104,34 @@ export async function createOrderInDb(orderData) {
 
   const docRef = db.collection('orders').doc(customId)
   await docRef.set(order)
+  invalidateActiveOrdersCache()
   const created = await docRef.get()
   return serializeDoc(created)
 }
 
+let activeOrdersCache = null
+let activeOrdersTimestamp = 0
+const ACTIVE_ORDERS_TTL = 3000 // 3 seconds
+
+export function invalidateActiveOrdersCache() {
+  activeOrdersCache = null
+  activeOrdersTimestamp = 0
+}
+
 export async function fetchActiveOrders() {
+  const now = Date.now()
+  if (activeOrdersCache && now - activeOrdersTimestamp < ACTIVE_ORDERS_TTL) {
+    return activeOrdersCache
+  }
+
   const db = getDb()
 
   if (!db) {
-    return memoryOrders
+    activeOrdersCache = memoryOrders
       .filter((o) => ACTIVE_STATUSES.includes(o.status))
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    activeOrdersTimestamp = now
+    return activeOrdersCache
   }
 
   const snapshot = await db
@@ -123,7 +140,9 @@ export async function fetchActiveOrders() {
     .get()
 
   const orders = snapshot.docs.map(serializeDoc)
-  return orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  activeOrdersCache = orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  activeOrdersTimestamp = now
+  return activeOrdersCache
 }
 
 export async function fetchOrders({ fromDate, toDate, status } = {}) {
@@ -191,18 +210,24 @@ export async function updateOrderStatusInDb(id, newStatus) {
   const doc = await docRef.get()
   if (!doc.exists) throw new Error('Order not found')
 
-  const currentStatus = doc.data().status
-  if (!canTransition(currentStatus, newStatus)) {
-    throw new Error(`Cannot transition from ${currentStatus} to ${newStatus}`)
+  const currentData = doc.data()
+  if (!canTransition(currentData.status, newStatus)) {
+    throw new Error(`Cannot transition from ${currentData.status} to ${newStatus}`)
   }
 
+  const isoNow = new Date().toISOString()
   await docRef.update({
     status: newStatus,
     updatedAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
   })
+  invalidateActiveOrdersCache()
 
-  const updated = await docRef.get()
-  return serializeDoc(updated)
+  return {
+    id: doc.id,
+    ...currentData,
+    status: newStatus,
+    updatedAt: isoNow,
+  }
 }
 
 export async function deliverOrderInDb(id, payment) {
@@ -217,6 +242,7 @@ export async function deliverOrderInDb(id, payment) {
     order.status = ORDER_STATUSES.DELIVERED
     order.payment = payment
     order.updatedAt = new Date().toISOString()
+    invalidateActiveOrdersCache()
     return order
   }
 
@@ -224,16 +250,24 @@ export async function deliverOrderInDb(id, payment) {
   const doc = await docRef.get()
   if (!doc.exists) throw new Error('Order not found')
 
-  if (doc.data().status !== ORDER_STATUSES.PACKED) {
+  const currentData = doc.data()
+  if (currentData.status !== ORDER_STATUSES.PACKED) {
     throw new Error('Order must be packed before delivery')
   }
 
+  const isoNow = new Date().toISOString()
   await docRef.update({
     status: ORDER_STATUSES.DELIVERED,
     payment,
     updatedAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
   })
+  invalidateActiveOrdersCache()
 
-  const updated = await docRef.get()
-  return serializeDoc(updated)
+  return {
+    id: doc.id,
+    ...currentData,
+    status: ORDER_STATUSES.DELIVERED,
+    payment,
+    updatedAt: isoNow,
+  }
 }
