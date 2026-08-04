@@ -19,15 +19,25 @@ export default function ConfirmModal({
     if (isOpen) {
       setShouldRender(true)
       document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
       const timer = setTimeout(() => setActive(true), 20)
-      return () => clearTimeout(timer)
+      return () => {
+        clearTimeout(timer)
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+      }
     } else {
       setActive(false)
       const timer = setTimeout(() => {
         setShouldRender(false)
         document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
       }, 200)
-      return () => clearTimeout(timer)
+      return () => {
+        clearTimeout(timer)
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+      }
     }
   }, [isOpen])
 
@@ -56,7 +66,7 @@ export default function ConfirmModal({
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 transition-all duration-200 ease-out ${
+      className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 transition-all duration-200 ease-out touch-none overscroll-none ${
         active
           ? 'bg-slate-950/60 backdrop-blur-md opacity-100'
           : 'bg-slate-950/0 backdrop-blur-none opacity-0 pointer-events-none'

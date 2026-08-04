@@ -337,6 +337,18 @@ export default function Products() {
     return () => clearInterval(timer)
   }, [isAutoPlaying])
 
+  // Lock background body scroll when menu drawer is open
+  useEffect(() => {
+    if (showMenuDrawer) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+      }
+    }
+  }, [showMenuDrawer])
+
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % HERO_SLIDES.length)
   }
@@ -501,8 +513,8 @@ export default function Products() {
       {/* Sticky Glassmorphic Search & Filter Bar */}
       <div className="sticky top-[60px] sm:top-[72px] z-30 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-xl border-b border-gray-200/70 shadow-xs space-y-3 transition-all">
         <div className="max-w-6xl mx-auto space-y-3">
-          {/* Top Controls Row: Search Input + Sort + Layout Switcher */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Top Controls Row: Search Input + Layout Switcher */}
+          <div className="flex items-center justify-between gap-2 sm:gap-3">
             {/* Search Input */}
             <div className="relative flex-1 min-w-0">
               <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-500" />
@@ -511,7 +523,7 @@ export default function Products() {
                 placeholder="Search fried chicken, burgers, momos..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-10 py-2.5 bg-gray-50/90 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-400 rounded-2xl text-sm font-semibold border border-gray-200 focus:border-orange-500 shadow-2xs outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
+                className="w-full pl-10 pr-10 py-2.5 bg-gray-50/90 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-400 rounded-2xl text-xs sm:text-sm font-semibold border border-gray-200 focus:border-orange-500 shadow-2xs outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
               />
               {searchQuery && (
                 <button
@@ -524,98 +536,15 @@ export default function Products() {
             </div>
 
             {/* Right Tools Group: View Mode Switcher + Reset */}
-            <div className="flex items-center gap-2 justify-between sm:justify-end">
-              {/* Sort Dropdown (Temporarily hidden)
-              <div className="relative">
-                <button
-                  onClick={() => setShowSortMenu(!showSortMenu)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-bold cursor-pointer transition-all border ${
-                    sortBy !== 'default'
-                      ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                      : 'bg-gray-100/90 hover:bg-gray-200/80 text-gray-700 border-gray-200/60'
-                  }`}
-                >
-                  <ArrowUpDown size={13} className={sortBy !== 'default' ? 'text-white' : 'text-gray-500'} />
-                  <span>
-                    {sortBy === 'price-asc'
-                      ? 'Price: Low → High'
-                      : sortBy === 'price-desc'
-                      ? 'Price: High → Low'
-                      : 'Sort'}
-                  </span>
-                  <ChevronDown
-                    size={13}
-                    className={`transition-transform duration-200 ${
-                      showSortMenu ? 'rotate-180' : ''
-                    } ${sortBy !== 'default' ? 'text-white' : 'text-gray-400'}`}
-                  />
-                </button>
-
-                {showSortMenu && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-40"
-                      onClick={() => setShowSortMenu(false)}
-                    />
-
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-100 p-2 z-50 animate-in fade-in zoom-in-95 duration-150 space-y-1">
-                      <div className="px-3 py-1.5 border-b border-gray-100">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">Sort Menu By</span>
-                      </div>
-
-                      {[
-                        { id: 'default', label: 'Recommended', icon: Sparkles, desc: 'Signature menu items' },
-                        { id: 'price-asc', label: 'Price: Low to High', icon: TrendingUp, desc: 'Budget-friendly dishes first' },
-                        { id: 'price-desc', label: 'Price: High to Low', icon: TrendingDown, desc: 'Premium feasts first' },
-                      ].map((option) => {
-                        const Icon = option.icon
-                        const isActive = sortBy === option.id
-
-                        return (
-                          <button
-                            key={option.id}
-                            onClick={() => {
-                              setSortBy(option.id)
-                              setShowSortMenu(false)
-                            }}
-                            className={`w-full flex items-center justify-between p-2.5 rounded-2xl text-xs font-bold text-left transition-all border-none cursor-pointer ${
-                              isActive
-                                ? 'bg-gray-100 text-slate-900 font-extrabold'
-                                : 'hover:bg-gray-50 text-gray-600'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <div
-                                className={`w-7 h-7 rounded-xl flex items-center justify-center ${
-                                  isActive ? 'bg-slate-900 text-white' : 'bg-gray-100 text-gray-400'
-                                }`}
-                              >
-                                <Icon size={14} />
-                              </div>
-                              <div>
-                                <p className="font-extrabold text-xs m-0 leading-none">{option.label}</p>
-                                <p className="text-[10px] text-gray-400 font-medium m-0 mt-0.5">{option.desc}</p>
-                              </div>
-                            </div>
-
-                            {isActive && <Check size={14} className="text-slate-900 stroke-[3]" />}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </>
-                )}
-              </div>
-              */}
-
+            <div className="flex items-center gap-2 shrink-0">
               {/* Grid vs List View Mode Toggle */}
-              <div className="flex items-center p-1 bg-gray-100 rounded-2xl border border-gray-200/60">
+              <div className="flex items-center p-1 bg-gray-100/90 rounded-2xl border border-gray-200/60 shadow-2xs">
                 <button
                   onClick={() => setViewMode('grid')}
                   title="Grid View"
-                  className={`p-1.5 rounded-xl border-none cursor-pointer transition-all ${
+                  className={`p-1.5 sm:p-2 rounded-xl border-none cursor-pointer transition-all ${
                     viewMode === 'grid'
-                      ? 'bg-white text-orange-600 shadow-xs'
+                      ? 'bg-white text-orange-600 shadow-xs font-bold'
                       : 'text-gray-400 hover:text-gray-700 bg-transparent'
                   }`}
                 >
@@ -624,9 +553,9 @@ export default function Products() {
                 <button
                   onClick={() => setViewMode('list')}
                   title="List View"
-                  className={`p-1.5 rounded-xl border-none cursor-pointer transition-all ${
+                  className={`p-1.5 sm:p-2 rounded-xl border-none cursor-pointer transition-all ${
                     viewMode === 'list'
-                      ? 'bg-white text-orange-600 shadow-xs'
+                      ? 'bg-white text-orange-600 shadow-xs font-bold'
                       : 'text-gray-400 hover:text-gray-700 bg-transparent'
                   }`}
                 >
@@ -643,7 +572,8 @@ export default function Products() {
                     setSearchQuery('')
                     setSortBy('default')
                   }}
-                  className="flex items-center gap-1 px-3 py-2 rounded-2xl bg-orange-50 hover:bg-orange-100 text-orange-600 font-bold text-xs cursor-pointer border border-orange-200/60 transition-colors"
+                  className="flex items-center gap-1 px-2.5 sm:px-3 py-2 rounded-2xl bg-orange-50 hover:bg-orange-100 text-orange-600 font-bold text-xs cursor-pointer border border-orange-200/60 transition-colors"
+                  title="Reset Filters"
                 >
                   <RotateCcw size={13} />
                   <span className="hidden sm:inline">Reset</span>
@@ -834,7 +764,7 @@ export default function Products() {
       {/* Floating Category Navigation Menu Drawer Trigger / Modal */}
       {showMenuDrawer && (
         <div
-          className="fixed inset-0 z-[999] bg-slate-950/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[999] bg-slate-950/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200 touch-none overscroll-none"
           onClick={() => setShowMenuDrawer(false)}
         >
           <div
