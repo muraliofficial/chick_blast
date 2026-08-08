@@ -6,20 +6,20 @@ const memoryCustomers = []
 function serializeDoc(doc) {
   const data = doc.data()
   const did = doc.id
+  const cleanName = data.name || data.Name || ''
+  const cleanMobile = data.mobile || data.MobileNo || ''
+  const history = data.orderHistory || data['Order history'] || []
+
   return {
     id: did,
     did,
     ...data,
-    Name: data.name || data.Name || '',
-    name: data.name || data.Name || '',
-    MobileNo: data.mobile || data.MobileNo || '',
-    mobile: data.mobile || data.MobileNo || '',
-    'Order history': data.orderHistory || data['Order history'] || [],
-    orderHistory: data.orderHistory || data['Order history'] || [],
-    CreatedAt:
-      data.createdAt?.toDate?.()?.toISOString?.() ??
-      data.CreatedAt?.toDate?.()?.toISOString?.() ??
-      (typeof data.createdAt === 'string' ? data.createdAt : new Date().toISOString()),
+    name: cleanName,
+    Name: cleanName,
+    mobile: cleanMobile,
+    MobileNo: cleanMobile,
+    orderHistory: history,
+    'Order history': history,
     createdAt:
       data.createdAt?.toDate?.()?.toISOString?.() ??
       data.CreatedAt?.toDate?.()?.toISOString?.() ??
@@ -76,7 +76,7 @@ export async function checkCustomerExists(mobileNo) {
 
 /**
  * Create a new Customer document in customers collection with auto-generated did
- * Fields: did, name, mobile, orderHistory, createdAt (Timestamp)
+ * Fields: did, name, mobile, orderHistory, createdAt, updatedAt
  */
 export async function createCustomerInDb({ name, mobileNo }) {
   const cleanMobile = String(mobileNo || '').replace(/\D/g, '')
@@ -99,7 +99,6 @@ export async function createCustomerInDb({ name, mobileNo }) {
       orderHistory: [],
       'Order history': [],
       createdAt: isoNow,
-      CreatedAt: isoNow,
       updatedAt: isoNow,
     }
 
@@ -125,7 +124,6 @@ export async function createCustomerInDb({ name, mobileNo }) {
     await docRef.set(
       {
         name: cleanName,
-        Name: cleanName,
         updatedAt: FieldValue?.serverTimestamp ? FieldValue.serverTimestamp() : new Date(),
       },
       { merge: true }
@@ -356,9 +354,17 @@ export async function appendOrderToCustomer(customerMobileOrDid, orderSummary) {
 
   const db = getDb()
   const isoNow = new Date().toISOString()
+
+  // Clean, minimal order summary entry for the customer's orderHistory array
   const orderEntry = {
-    ...orderSummary,
-    createdAt: isoNow,
+    id: orderSummary.id || '',
+    orderNo: orderSummary.orderNo || 0,
+    orderDate: orderSummary.orderDate || '',
+    items: Array.isArray(orderSummary.items) ? orderSummary.items : [],
+    totalAmount: orderSummary.totalAmount || 0,
+    status: orderSummary.status || 'new',
+    payment: orderSummary.payment || null,
+    createdAt: orderSummary.createdAt || isoNow,
   }
 
   if (!db) {
