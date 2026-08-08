@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { X, Minus, Plus, Sparkles, CheckCircle2 } from 'lucide-react'
 import FssaiBadge from '../../shared/components/FssaiBadge'
 import { useCart } from '../../shared/context/CartContext'
+import QuantityControl from './QuantityControl'
 
 export default function ProductDetailModal({ product, isOpen, onClose }) {
   const { items, addItem, updateQuantity } = useCart()
@@ -72,14 +73,27 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
           : 'bg-slate-950/0 backdrop-blur-none opacity-0 pointer-events-none'
       }`}
       onClick={handleClose}
+      onWheel={(e) => {
+        if (e.target === e.currentTarget) {
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      }}
+      onTouchMove={(e) => {
+        if (e.target === e.currentTarget) {
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      }}
     >
       <div
-        className={`w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] sm:max-h-[85vh] flex flex-col border border-gray-100 transition-all duration-300 cubic-bezier(0.32,0.72,0,1) transform ${
+        className={`w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] sm:max-h-[85vh] flex flex-col border border-gray-100 transition-all duration-300 cubic-bezier(0.32,0.72,0,1) transform overscroll-contain ${
           active
             ? 'translate-y-0 scale-100 opacity-100'
             : 'translate-y-full sm:translate-y-8 sm:scale-95 opacity-0'
         }`}
         onClick={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
       >
         {/* Mobile Drag Indicator / Close Top Bar */}
         <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto my-2.5 sm:hidden shrink-0 cursor-pointer" onClick={handleClose} />
@@ -165,30 +179,14 @@ export default function ProductDetailModal({ product, isOpen, onClose }) {
             </span>
           </div>
 
-          {quantity > 0 ? (
-            <div className="flex items-center gap-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-2xl p-1.5 shadow-lg shadow-orange-500/25">
-              <button
-                onClick={handleDecrement}
-                className="w-9 h-9 rounded-xl bg-white/20 hover:bg-white/30 text-white active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
-              >
-                <Minus size={18} className="stroke-[3]" />
-              </button>
-              <span className="w-8 text-center font-black text-lg text-white select-none">{quantity}</span>
-              <button
-                onClick={handleIncrement}
-                className="w-9 h-9 rounded-xl bg-white/20 hover:bg-white/30 text-white active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
-              >
-                <Plus size={18} className="stroke-[3]" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={handleAdd}
-              className="px-7 py-3 rounded-2xl text-sm font-black tracking-wide uppercase text-white bg-gradient-to-r from-orange-500 via-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 flex items-center gap-2 active:scale-95 cursor-pointer border-none transition-all"
-            >
-              <Plus size={18} className="stroke-[3]" /> Add to Cart
-            </button>
-          )}
+          <QuantityControl
+            quantity={quantity}
+            onAdd={handleAdd}
+            onIncrement={handleIncrement}
+            onDecrement={handleDecrement}
+            size="lg"
+            addLabel="Add to Cart"
+          />
         </div>
       </div>
     </div>

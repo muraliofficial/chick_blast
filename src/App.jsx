@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { CustomerProvider } from './shared/context/CustomerContext'
 import { CartProvider } from './shared/context/CartContext'
 import ApiLoader from './shared/components/ApiLoader'
 import WebsiteLayout from './website/layout/WebsiteLayout'
@@ -15,8 +16,9 @@ import NotFound from './website/pages/NotFound'
 
 export default function App() {
   return (
-    <CartProvider>
-      <ApiLoader />
+    <CustomerProvider>
+      <CartProvider>
+        <ApiLoader />
       <BrowserRouter>
         <Routes>
           <Route element={<WebsiteLayout />}>
@@ -36,5 +38,6 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </CartProvider>
+  </CustomerProvider>
   )
 }

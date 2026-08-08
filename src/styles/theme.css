@@ -120,11 +120,15 @@ html, body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   animation: fadeIn 0.2s ease;
+  overscroll-behavior: contain;
+  touch-action: none;
 }
 
 .modal-content {
   @apply bg-white rounded-2xl shadow-2xl w-full max-h-[90vh] overflow-y-auto border border-white/50;
   animation: slideUp 0.3s ease;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .card {

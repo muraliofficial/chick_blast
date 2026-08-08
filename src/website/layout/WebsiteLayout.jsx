@@ -1,13 +1,17 @@
 import { Outlet, Link, NavLink } from 'react-router-dom'
-import { ShoppingCart } from 'lucide-react'
+import { ShoppingCart, User, ShieldCheck, KeyRound } from 'lucide-react'
 import BottomNav from '../components/BottomNav'
+import CustomerAuthModal from '../components/CustomerAuthModal'
+import CustomerAccountModal from '../components/CustomerAccountModal'
 import { useCart } from '../../shared/context/CartContext'
+import { useCustomer } from '../../shared/context/CustomerContext'
 import DeveloperSignature from '../../shared/components/DeveloperSignature'
 import logoImg from '../../assets/logo.png'
 import '../../styles/website.css'
 
 export default function WebsiteLayout() {
   const { itemCount, totalAmount } = useCart()
+  const { customer, isLoggedIn, openAuthModal, openAccountModal } = useCustomer()
 
   return (
     <div className="website-layout">
@@ -37,7 +41,8 @@ export default function WebsiteLayout() {
               to="/"
               end
               className={({ isActive }) =>
-                `text-sm font-semibold no-underline transition-colors ${isActive ? 'text-orange-500 font-bold' : 'text-gray-600 hover:text-gray-900'
+                `text-sm font-semibold no-underline transition-colors ${
+                  isActive ? 'text-orange-500 font-bold' : 'text-gray-600 hover:text-gray-900'
                 }`
               }
             >
@@ -46,7 +51,8 @@ export default function WebsiteLayout() {
             <NavLink
               to="/cart"
               className={({ isActive }) =>
-                `text-sm font-semibold no-underline transition-colors ${isActive ? 'text-orange-500 font-bold' : 'text-gray-600 hover:text-gray-900'
+                `text-sm font-semibold no-underline transition-colors ${
+                  isActive ? 'text-orange-500 font-bold' : 'text-gray-600 hover:text-gray-900'
                 }`
               }
             >
@@ -55,7 +61,8 @@ export default function WebsiteLayout() {
             <NavLink
               to="/order-status"
               className={({ isActive }) =>
-                `text-sm font-semibold no-underline transition-colors ${isActive ? 'text-orange-500 font-bold' : 'text-gray-600 hover:text-gray-900'
+                `text-sm font-semibold no-underline transition-colors ${
+                  isActive ? 'text-orange-500 font-bold' : 'text-gray-600 hover:text-gray-900'
                 }`
               }
             >
@@ -63,8 +70,35 @@ export default function WebsiteLayout() {
             </NavLink>
           </nav>
 
-          {/* Right Header Actions */}
-          <div className="flex items-center gap-2.5">
+          {/* Right Header Actions: Account Icon & Cart */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Account Icon Button for Customer */}
+            {isLoggedIn && customer ? (
+              <button
+                onClick={openAccountModal}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-gray-900 font-bold text-xs sm:text-sm border border-slate-200 transition-all active:scale-95 cursor-pointer shadow-2xs"
+                title="View Customer Profile & Order History"
+              >
+                <div className="w-6 h-6 rounded-lg bg-orange-500 text-white flex items-center justify-center font-black text-xs">
+                  {customer.Name ? customer.Name.charAt(0).toUpperCase() : <User size={14} />}
+                </div>
+                <span className="max-w-[100px] truncate hidden sm:inline">
+                  {customer.Name || 'Account'}
+                </span>
+                <ShieldCheck size={14} className="text-emerald-600 shrink-0" />
+              </button>
+            ) : (
+              <button
+                onClick={() => openAuthModal()}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-600 font-bold text-xs sm:text-sm border border-orange-200/80 transition-all active:scale-95 cursor-pointer"
+                title="Customer Login / Signup"
+              >
+                <User size={16} />
+                <span>Login</span>
+              </button>
+            )}
+
+            {/* Cart Button */}
             <Link
               to="/cart"
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs sm:text-sm no-underline shadow-md shadow-orange-500/20 transition-transform active:scale-95"
@@ -93,6 +127,10 @@ export default function WebsiteLayout() {
 
       {/* Mobile Bottom Navigation */}
       <BottomNav />
+
+      {/* Customer Modals */}
+      <CustomerAuthModal />
+      <CustomerAccountModal />
     </div>
   )
 }

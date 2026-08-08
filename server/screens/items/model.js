@@ -416,15 +416,13 @@ async function getAllItemsCached(db) {
   return cachedItems
 }
 
-export async function getNextItemId(db, itemType = 'item') {
-  const prefix = itemType === 'combo' ? 'combo-' : 'item-'
-  const items = await getAllItemsCached(db)
-  const matches = items
-    .filter((i) => i.id && i.id.startsWith(prefix))
-    .map((i) => parseInt(i.id.replace(prefix, ''), 10))
-    .filter((n) => !isNaN(n))
-  const max = matches.length > 0 ? Math.max(...matches) : 0
-  return `${prefix}${max + 1}`
+export async function getNextItemId(db) {
+  if (db) {
+    return db.collection('items').doc().id
+  }
+  const timestamp = Date.now().toString(36)
+  const randomStr = Math.random().toString(36).substring(2, 8)
+  return `itm_${timestamp}_${randomStr}`
 }
 
 export async function fetchItems({ type, includeInactive } = {}) {
@@ -451,11 +449,12 @@ export async function createItemInDb(itemData) {
   const { name, unit, category, label, price, description, imageUrl, type, comboItemIds } = itemData
   const itemType = type || 'item'
   const db = getDb()
-  const customId = await getNextItemId(db, itemType)
+  const customId = await getNextItemId(db)
   const isoNow = new Date().toISOString()
 
   const newItem = {
     id: customId,
+    did: customId,
     name,
     unit: unit || 'pc',
     category: category || 'Fried Chicken',

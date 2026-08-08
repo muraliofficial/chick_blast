@@ -8,6 +8,7 @@ import itemsRouter from './screens/items/routes.js'
 import ordersRouter from './screens/orders/routes.js'
 import dashboardRouter from './screens/dashboard/routes.js'
 import uploadRouter from './screens/upload/routes.js'
+import customersRouter from './screens/customers/routes.js'
 
 dotenv.config()
 
@@ -31,6 +32,7 @@ app.use('/api', (req, res, next) => {
 
 app.use('/api/items', itemsRouter)
 app.use('/api/orders', ordersRouter)
+app.use('/api/customers', customersRouter)
 app.use('/api/upload', uploadRouter)
 app.use('/api/dashboard', dashboardRouter)
 

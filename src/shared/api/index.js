@@ -74,6 +74,26 @@ export const ordersApi = {
     request(`/orders/${id}/deliver`, { method: 'PATCH', body: JSON.stringify({ payment }) }),
 }
 
+export const customersApi = {
+  check: (mobileNo) =>
+    request('/customers/check', {
+      method: 'POST',
+      body: JSON.stringify({ mobileNo }),
+    }),
+  verifyOtp: ({ mobileNo, otp, name, isNewUser }) =>
+    request('/customers/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ mobileNo, otp, name, isNewUser }),
+    }),
+  getProfile: (mobileNo) => request(`/customers/profile/${mobileNo}`),
+  updateProfile: (id, data) =>
+    request(`/customers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  getOrderHistory: (mobileNo) => request(`/customers/${mobileNo}/orders`),
+}
+
 export const dashboardApi = {
   itemCounts: (dateOrParams) => {
     if (typeof dateOrParams === 'string') {

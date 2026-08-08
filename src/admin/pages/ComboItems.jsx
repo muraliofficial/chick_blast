@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, Pencil, Eye, EyeOff, Search, Layers } from 'lucide-react'
+import { Plus, Trash2, Pencil, Eye, EyeOff, Search, Layers, Check, X } from 'lucide-react'
 import { itemsApi, uploadImage } from '../../shared/api'
 import { LABELS } from '../../shared/constants'
 import GradientModal from '../../shared/components/GradientModal'
@@ -127,28 +127,72 @@ function ComboFormModal({ isOpen, onClose, combo, allItems, onSave }) {
           required
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Price */}
+        <div>
+          <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-1">
+            Combo Price (₹)
+          </label>
           <input
-            className="input-field"
+            className="input-field font-bold text-slate-900"
             type="number"
-            placeholder="Combo Price (₹)"
+            placeholder="₹ 0.00"
             value={form.price}
             onChange={(e) => setForm({ ...form, price: e.target.value })}
             required
             min="0"
             step="0.01"
           />
-          <ModernSelect
-            options={LABELS}
-            value={form.label}
-            onChange={(v) => setForm({ ...form, label: v })}
-            label="Food Type"
-          />
+        </div>
+
+        {/* Food Type / Diet Classification */}
+        <div>
+          <label className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-1.5">
+            Diet Classification
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, label: 'Veg' })}
+              className={`flex items-center justify-between p-3 rounded-2xl border-2 transition-all cursor-pointer ${
+                form.label === 'Veg'
+                  ? 'bg-emerald-50/80 border-emerald-500 text-emerald-900 shadow-sm'
+                  : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <FssaiBadge isVeg={true} size={18} />
+                <div className="text-left">
+                  <p className="font-bold text-xs m-0 text-emerald-900">Vegetarian</p>
+                  <p className="text-[10px] text-emerald-700/80 font-medium m-0">Pure Veg Combo</p>
+                </div>
+              </div>
+              {form.label === 'Veg' && <Check size={16} className="text-emerald-600 shrink-0" />}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setForm({ ...form, label: 'Non-Veg' })}
+              className={`flex items-center justify-between p-3 rounded-2xl border-2 transition-all cursor-pointer ${
+                form.label === 'Non-Veg'
+                  ? 'bg-rose-50/80 border-rose-500 text-rose-900 shadow-sm'
+                  : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <FssaiBadge isVeg={false} size={18} />
+                <div className="text-left">
+                  <p className="font-bold text-xs m-0 text-rose-900">Non-Vegetarian</p>
+                  <p className="text-[10px] text-rose-700/80 font-medium m-0">Includes Chicken/Meat</p>
+                </div>
+              </div>
+              {form.label === 'Non-Veg' && <Check size={16} className="text-rose-600 shrink-0" />}
+            </button>
+          </div>
         </div>
 
         <textarea
-          className="input-field resize-none"
-          placeholder="Description"
+          className="input-field resize-none text-xs sm:text-sm"
+          placeholder="Description (e.g. 2pc Crispy Chicken + Fries + Soft Drink...)"
           rows={2}
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -189,6 +233,11 @@ function ComboFormModal({ isOpen, onClose, combo, allItems, onSave }) {
   )
 }
 
+const DIET_FILTER_OPTIONS = [
+  { value: 'All', label: 'All Diets' },
+  ...LABELS.map((l) => ({ value: l, label: l })),
+]
+
 export default function ComboItems() {
   const [combos, setCombos] = useState([])
   const [allItems, setAllItems] = useState([])
@@ -196,6 +245,7 @@ export default function ComboItems() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editCombo, setEditCombo] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedLabel, setSelectedLabel] = useState('All')
 
   const loadData = () => {
     itemsApi
@@ -252,7 +302,8 @@ export default function ComboItems() {
     const matchesSearch =
       combo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (combo.description && combo.description.toLowerCase().includes(searchQuery.toLowerCase()))
-    return matchesSearch
+    const matchesLabel = selectedLabel === 'All' || combo.label === selectedLabel
+    return matchesSearch && matchesLabel
   })
 
   return (
@@ -261,7 +312,9 @@ export default function ComboItems() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl md:text-2xl font-bold text-slate-900 m-0">Combo Items</h2>
-          <p className="text-xs md:text-sm text-slate-500 mt-0.5 m-0">Manage promotional combo offers & value meals</p>
+          <p className="text-xs md:text-sm text-slate-500 mt-0.5 m-0 font-medium">
+            Manage promotional combo offers & value meals
+          </p>
         </div>
         <button
           onClick={() => { setEditCombo(null); setModalOpen(true) }}
@@ -271,17 +324,39 @@ export default function ComboItems() {
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-white border border-slate-200/80 p-3.5 sm:p-4 rounded-2xl shadow-2xs">
-        <div className="relative">
-          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search combo packages by name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-slate-800 focus:bg-white transition-all font-medium"
-          />
+      {/* Search & Filter Bar */}
+      <div className="bg-white border border-slate-200/80 p-3.5 sm:p-4 rounded-2xl shadow-2xs space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search combo packages by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-slate-800 focus:bg-white transition-all font-medium text-slate-800"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-0.5 border-none bg-transparent"
+              >
+                <X size={15} />
+              </button>
+            )}
+          </div>
+
+          {/* Diet Dropdown Filter using ModernSelect */}
+          <div className="w-full sm:w-44">
+            <ModernSelect
+              options={DIET_FILTER_OPTIONS}
+              value={selectedLabel}
+              onChange={(val) => setSelectedLabel(val)}
+              placeholder="All Diets"
+            />
+          </div>
         </div>
       </div>
 

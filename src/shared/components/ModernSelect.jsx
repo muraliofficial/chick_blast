@@ -1,7 +1,16 @@
 import { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Check } from 'lucide-react'
 
-export default function ModernSelect({ options = [], value, onChange, placeholder = 'Select...', label }) {
+export default function ModernSelect({
+  options = [],
+  value,
+  onChange,
+  placeholder = 'Select...',
+  label,
+  iconMap = {},
+  renderOption,
+  className = '',
+}) {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef(null)
 
@@ -30,27 +39,47 @@ export default function ModernSelect({ options = [], value, onChange, placeholde
     return opt
   }
 
+  const getIcon = (optVal) => {
+    if (iconMap && iconMap[optVal]) return iconMap[optVal]
+    return null
+  }
+
+  const currentLabel = getLabel(selectedOption)
+  const currentIcon = getIcon(value)
+
   return (
-    <div className="relative inline-block w-full" ref={containerRef}>
-      {label && <label className="text-xs font-semibold text-gray-500 uppercase block mb-1">{label}</label>}
+    <div className={`relative inline-block w-full ${className}`} ref={containerRef}>
+      {label && (
+        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+          {label}
+        </label>
+      )}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between gap-3 px-4 py-2.5 bg-white/90 hover:bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow transition-all text-sm font-medium text-gray-800 cursor-pointer"
+        className={`w-full flex items-center justify-between gap-2.5 px-3.5 py-2.5 bg-white hover:bg-slate-50 border rounded-xl shadow-2xs transition-all text-sm font-semibold text-slate-800 cursor-pointer ${
+          isOpen ? 'border-orange-500 ring-2 ring-orange-500/20' : 'border-slate-200 hover:border-slate-300'
+        }`}
       >
-        <span className="truncate">{getLabel(selectedOption)}</span>
+        <span className="flex items-center gap-2 truncate">
+          {currentIcon && <span className="text-base leading-none shrink-0">{currentIcon}</span>}
+          <span className="truncate">{currentLabel}</span>
+        </span>
         <ChevronDown
           size={16}
-          className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-orange-500' : ''}`}
+          className={`text-slate-400 shrink-0 transition-transform duration-200 ${
+            isOpen ? 'rotate-180 text-orange-500' : ''
+          }`}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-2 z-50 max-h-60 overflow-y-auto bg-white rounded-2xl shadow-2xl border border-gray-100 p-1.5 space-y-1 animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute left-0 right-0 mt-1.5 z-50 max-h-60 overflow-y-auto bg-white rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-1 animate-in fade-in slide-in-from-top-2 duration-150 backdrop-blur-md">
           {options.map((option, idx) => {
             const optVal = getValue(option)
             const optLabel = getLabel(option)
             const isSelected = optVal === value
+            const optIcon = getIcon(optVal)
 
             return (
               <div
@@ -59,14 +88,17 @@ export default function ModernSelect({ options = [], value, onChange, placeholde
                   onChange(optVal)
                   setIsOpen(false)
                 }}
-                className={`flex items-center justify-between px-3 py-2 rounded-xl text-sm cursor-pointer transition-colors ${
+                className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs sm:text-sm cursor-pointer transition-all ${
                   isSelected
-                    ? 'bg-orange-50 text-orange-600 font-semibold'
-                    : 'text-gray-700 hover:bg-gray-50 font-medium'
+                    ? 'bg-orange-50 text-orange-700 font-bold border border-orange-200/60'
+                    : 'text-slate-700 hover:bg-slate-50 font-medium'
                 }`}
               >
-                <span className="truncate">{optLabel}</span>
-                {isSelected && <Check size={16} className="text-orange-500 flex-shrink-0" />}
+                <div className="flex items-center gap-2 min-w-0">
+                  {optIcon && <span className="text-base leading-none shrink-0">{optIcon}</span>}
+                  {renderOption ? renderOption(option) : <span className="truncate">{optLabel}</span>}
+                </div>
+                {isSelected && <Check size={16} className="text-orange-600 shrink-0 ml-2" />}
               </div>
             )
           })}
@@ -75,3 +107,4 @@ export default function ModernSelect({ options = [], value, onChange, placeholde
     </div>
   )
 }
+

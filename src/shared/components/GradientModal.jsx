@@ -49,6 +49,18 @@ export default function GradientModal({ isOpen, onClose, title, children, maxWid
           : 'bg-slate-950/0 backdrop-blur-none opacity-0 pointer-events-none'
       }`}
       onClick={handleClose}
+      onWheel={(e) => {
+        if (e.target === e.currentTarget) {
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      }}
+      onTouchMove={(e) => {
+        if (e.target === e.currentTarget) {
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      }}
     >
       <div
         className={`bg-white rounded-3xl shadow-2xl w-full max-h-[90vh] flex flex-col border border-gray-100 overflow-hidden transition-all duration-300 cubic-bezier(0.32,0.72,0,1) transform ${maxWidth} ${active
@@ -56,6 +68,7 @@ export default function GradientModal({ isOpen, onClose, title, children, maxWid
             : 'scale-95 translate-y-4 opacity-0'
           }`}
         onClick={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 bg-white shrink-0">
           <h3 className="text-base sm:text-lg font-black text-gray-900 m-0">{title}</h3>

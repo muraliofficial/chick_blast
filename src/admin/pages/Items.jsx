@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Plus, Pencil, Eye, EyeOff, Search, Package } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { Plus, Pencil, Eye, EyeOff, Search, Package, X } from 'lucide-react'
 import { itemsApi, uploadImage } from '../../shared/api'
 import { CATEGORIES, LABELS } from '../../shared/constants'
 import GradientModal from '../../shared/components/GradientModal'
@@ -16,6 +16,16 @@ const emptyForm = {
   description: '',
   imageUrl: '',
 }
+
+const CATEGORY_FILTER_OPTIONS = [
+  { value: 'All', label: 'All Categories' },
+  ...CATEGORIES.map((c) => ({ value: c, label: c })),
+]
+
+const DIET_FILTER_OPTIONS = [
+  { value: 'All', label: 'All Diets' },
+  ...LABELS.map((l) => ({ value: l, label: l })),
+]
 
 function ItemFormModal({ isOpen, onClose, item, onSave }) {
   const [form, setForm] = useState(emptyForm)
@@ -75,24 +85,29 @@ function ItemFormModal({ isOpen, onClose, item, onSave }) {
     <GradientModal
       isOpen={isOpen}
       onClose={onClose}
-      title={item ? 'Edit Item' : 'Add Item'}
+      title={item ? 'Edit Item' : 'Add New Item'}
       maxWidth="max-w-xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
-          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200 shadow-sm relative">
+          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200 shadow-sm relative">
             {form.imageUrl ? (
               <img src={form.imageUrl} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-3xl">🍗</div>
+              <div className="w-full h-full flex items-center justify-center text-3xl text-slate-400">
+                <Package size={28} />
+              </div>
             )}
+            <div className="absolute bottom-1 right-1">
+              <FssaiBadge isVeg={form.label === 'Veg'} size={14} />
+            </div>
           </div>
           <div className="flex-1 text-center sm:text-left">
-            <label className="btn-outline cursor-pointer inline-flex items-center gap-2">
+            <label className="btn-outline cursor-pointer inline-flex items-center gap-2 !py-2 !px-4 text-xs font-semibold">
               {uploading ? 'Uploading...' : 'Upload Image'}
               <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
             </label>
-            <p className="text-xs text-gray-400 mt-1 m-0">Recommended square ratio (e.g. 500x500)</p>
+            <p className="text-xs text-slate-400 mt-1 m-0">Recommended square ratio (e.g. 500x500)</p>
           </div>
         </div>
 
@@ -112,7 +127,7 @@ function ItemFormModal({ isOpen, onClose, item, onSave }) {
             onChange={(e) => setForm({ ...form, unit: e.target.value })}
           />
           <input
-            className="input-field"
+            className="input-field font-semibold"
             type="number"
             placeholder="Price (₹)"
             value={form.price}
@@ -134,12 +149,12 @@ function ItemFormModal({ isOpen, onClose, item, onSave }) {
             options={LABELS}
             value={form.label}
             onChange={(v) => setForm({ ...form, label: v })}
-            label="Food Type"
+            label="Diet (Food Type)"
           />
         </div>
 
         <textarea
-          className="input-field resize-none"
+          className="input-field resize-none text-xs sm:text-sm"
           placeholder="Description"
           rows={3}
           value={form.description}
@@ -147,8 +162,10 @@ function ItemFormModal({ isOpen, onClose, item, onSave }) {
         />
 
         <div className="flex gap-3 justify-end pt-2">
-          <button type="button" onClick={onClose} className="btn-outline">Cancel</button>
-          <button type="submit" disabled={saving} className="btn-primary">
+          <button type="button" onClick={onClose} className="btn-outline !py-2.5 !px-5 text-xs font-semibold">
+            Cancel
+          </button>
+          <button type="submit" disabled={saving} className="btn-primary !py-2.5 !px-6 text-xs font-semibold">
             {saving ? 'Saving...' : item ? 'Update Item' : 'Create Item'}
           </button>
         </div>
@@ -162,8 +179,6 @@ export default function Items() {
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [editItem, setEditItem] = useState(null)
-
-  // Filters
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [selectedLabel, setSelectedLabel] = useState('All')
@@ -199,29 +214,34 @@ export default function Items() {
     setModalOpen(true)
   }
 
-  const filteredItems = items.filter((item) => {
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
-    const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory
-    const matchesLabel = selectedLabel === 'All' || item.label === selectedLabel
-    return matchesSearch && matchesCategory && matchesLabel
-  })
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      const matchesSearch =
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
+      const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory
+      const matchesLabel = selectedLabel === 'All' || item.label === selectedLabel
+      return matchesSearch && matchesCategory && matchesLabel
+    })
+  }, [items, searchQuery, selectedCategory, selectedLabel])
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl md:text-2xl font-bold text-slate-900 m-0">Items</h2>
-          <p className="text-xs md:text-sm text-slate-500 mt-0.5 m-0">Manage food items & menu pricing</p>
+          <p className="text-xs md:text-sm text-slate-500 mt-0.5 m-0 font-medium">
+            Manage food items & menu pricing
+          </p>
         </div>
-        <button onClick={openAdd} className="btn-primary self-start sm:self-auto !py-2.5 !px-5 flex items-center justify-center gap-2 font-bold shadow-xs cursor-pointer">
+        <button
+          onClick={openAdd}
+          className="btn-primary self-start sm:self-auto !py-2.5 !px-5 flex items-center justify-center gap-2 font-bold shadow-xs cursor-pointer"
+        >
           <Plus size={18} /> Add Item
         </button>
       </div>
 
-      {/* Search & Filter Bar */}
       <div className="bg-white border border-slate-200/80 p-3.5 sm:p-4 rounded-2xl shadow-2xs space-y-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -231,35 +251,40 @@ export default function Items() {
               placeholder="Search items by name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-slate-800 focus:bg-white transition-all font-medium"
+              className="w-full pl-10 pr-9 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-slate-800 focus:bg-white transition-all font-medium text-slate-800"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-0.5 border-none bg-transparent"
+              >
+                <X size={15} />
+              </button>
+            )}
           </div>
-          <div className="flex gap-2">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-700 focus:outline-none focus:border-slate-800 cursor-pointer"
-            >
-              <option value="All">All Categories</option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            <select
-              value={selectedLabel}
-              onChange={(e) => setSelectedLabel(e.target.value)}
-              className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-700 focus:outline-none focus:border-slate-800 cursor-pointer"
-            >
-              <option value="All">All Diets</option>
-              {LABELS.map((l) => (
-                <option key={l} value={l}>{l}</option>
-              ))}
-            </select>
+
+          <div className="flex gap-2 w-full sm:w-auto min-w-[280px]">
+            <div className="flex-1 sm:w-44">
+              <ModernSelect
+                options={CATEGORY_FILTER_OPTIONS}
+                value={selectedCategory}
+                onChange={(val) => setSelectedCategory(val)}
+                placeholder="All Categories"
+              />
+            </div>
+            <div className="flex-1 sm:w-36">
+              <ModernSelect
+                options={DIET_FILTER_OPTIONS}
+                value={selectedLabel}
+                onChange={(val) => setSelectedLabel(val)}
+                placeholder="All Diets"
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Items Container */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
         {loading ? (
           <div className="py-12">
@@ -273,7 +298,6 @@ export default function Items() {
           </div>
         ) : (
           <>
-            {/* Mobile View: Cards Grid (block md:hidden) */}
             <div className="block md:hidden divide-y divide-slate-100">
               {filteredItems.map((item) => (
                 <div
@@ -287,7 +311,9 @@ export default function Items() {
                       {item.imageUrl ? (
                         <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xl">🍗</div>
+                        <div className="w-full h-full flex items-center justify-center text-slate-400">
+                          <Package size={20} />
+                        </div>
                       )}
                       <div className="absolute top-1 left-1">
                         <FssaiBadge isVeg={item.label === 'Veg'} size={14} />
@@ -318,7 +344,7 @@ export default function Items() {
                         className={`p-2 rounded-xl cursor-pointer border transition-colors ${
                           item.isActive === false
                             ? 'bg-amber-50 text-amber-800 border-amber-200'
-                            : 'bg-slate-100 text-slate-600 border-slate-200'
+                            : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
                         }`}
                       >
                         {item.isActive === false ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -336,7 +362,6 @@ export default function Items() {
               ))}
             </div>
 
-            {/* Desktop View: Table (hidden md:block) */}
             <div className="hidden md:block admin-table border-none shadow-none rounded-none">
               <table className="w-full">
                 <thead>
@@ -358,7 +383,9 @@ export default function Items() {
                           {item.imageUrl ? (
                             <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center">🍗</div>
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <Package size={16} />
+                            </div>
                           )}
                         </div>
                       </td>

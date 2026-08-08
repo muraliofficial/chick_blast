@@ -29,7 +29,9 @@ import { itemsApi } from '../../shared/api'
 import { CATEGORIES } from '../../shared/constants'
 import { useCart } from '../../shared/context/CartContext'
 import FssaiBadge from '../../shared/components/FssaiBadge'
+import Loader from '../../shared/components/Loader'
 import ProductDetailModal from '../components/ProductDetailModal'
+import QuantityControl from '../components/QuantityControl'
 
 const HERO_SLIDES = [
   {
@@ -163,33 +165,14 @@ function ProductGridCard({ product, onSelect }) {
           )}
         </div>
 
-        <div onClick={(e) => e.stopPropagation()}>
-          {quantity > 0 ? (
-            <div className="flex items-center justify-between gap-1.5 bg-emerald-600 text-white rounded-2xl p-1 shadow-md shadow-emerald-600/20 min-w-[96px]">
-              <button
-                onClick={handleDecrement}
-                className="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 text-white active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
-              >
-                <Minus size={13} className="stroke-[3]" />
-              </button>
-              <span className="font-black text-sm px-1 text-white select-none">{quantity}</span>
-              <button
-                onClick={handleIncrement}
-                className="w-7 h-7 rounded-xl bg-white/20 hover:bg-white/30 text-white active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
-              >
-                <Plus size={13} className="stroke-[3]" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={handleAdd}
-              className="px-4 py-2 rounded-2xl font-black text-xs tracking-wider text-emerald-600 bg-white border-2 border-emerald-600 hover:bg-emerald-600 hover:text-white shadow-md shadow-emerald-600/10 transition-all duration-200 cursor-pointer flex items-center gap-1 active:scale-95 border-none min-w-[84px] justify-center"
-            >
-              <Plus size={14} className="stroke-[3]" />
-              <span>ADD</span>
-            </button>
-          )}
-        </div>
+        <QuantityControl
+          quantity={quantity}
+          onAdd={handleAdd}
+          onIncrement={handleIncrement}
+          onDecrement={handleDecrement}
+          size="md"
+          addLabel="ADD"
+        />
       </div>
     </div>
   )
@@ -265,35 +248,16 @@ function ProductListCard({ product, onSelect }) {
           )}
         </div>
 
-        {/* Swiggy-Style Overlapping ADD / Stepper Button */}
+        {/* Overlapping ADD / Stepper Button */}
         <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-10 shrink-0">
-          {quantity > 0 ? (
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center justify-between gap-1 bg-white border-2 border-emerald-600 text-emerald-700 rounded-xl px-1 py-0.5 shadow-md shadow-emerald-500/10 min-w-[88px]"
-            >
-              <button
-                onClick={handleDecrement}
-                className="w-5.5 h-5.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
-              >
-                <Minus size={11} className="stroke-[3]" />
-              </button>
-              <span className="font-black text-xs px-1 text-emerald-800 select-none">{quantity}</span>
-              <button
-                onClick={handleIncrement}
-                className="w-5.5 h-5.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all shadow-2xs"
-              >
-                <Plus size={11} className="stroke-[3]" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={handleAdd}
-              className="px-4 py-1.5 rounded-xl font-black text-xs tracking-wider text-emerald-600 bg-white border-2 border-emerald-600 hover:bg-emerald-50 shadow-md shadow-emerald-500/10 transition-all duration-200 cursor-pointer flex items-center justify-center gap-1 active:scale-95 border-none min-w-[80px]"
-            >
-              <span>ADD</span>
-            </button>
-          )}
+          <QuantityControl
+            quantity={quantity}
+            onAdd={handleAdd}
+            onIncrement={handleIncrement}
+            onDecrement={handleDecrement}
+            size="sm"
+            addLabel="ADD"
+          />
         </div>
       </div>
     </div>
@@ -663,24 +627,15 @@ export default function Products() {
         </div>
       </div>
 
-      {/* Loading Skeleton State */}
+      {/* Loading State using Chick Blast signature Loader */}
       {loading ? (
-        <div className="space-y-4">
-          <div className="text-center py-6 space-y-2">
-            <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Loading Menu Items...</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((n) => (
-              <div key={n} className="bg-white rounded-3xl p-4 border border-gray-100 shadow-xs space-y-3 animate-pulse">
-                <div className="aspect-[4/3] bg-gray-100 rounded-2xl w-full" />
-                <div className="h-4 bg-gray-200 rounded-md w-3/4" />
-                <div className="h-3 bg-gray-100 rounded-md w-full" />
-                <div className="h-8 bg-gray-100 rounded-xl w-full pt-2" />
-              </div>
-            ))}
-          </div>
+        <div className="py-16 flex items-center justify-center">
+          <Loader
+            fullScreen={false}
+            size="md"
+            text="Loading Chick Blast Menu..."
+            subtext="Preparing fresh crispy delicacies for you"
+          />
         </div>
       ) : Object.keys(groupedProducts).length === 0 ? (
         /* Empty State */
@@ -708,46 +663,55 @@ export default function Products() {
           </button>
         </div>
       ) : (
-        /* Products Content Container */
-        <div className="space-y-8">
+        /* Products Content Container: Category Wise Expandable Cards (No icons/images) */
+        <div className="space-y-6">
           {Object.entries(groupedProducts).map(([catName, catItems]) => {
-            const isCollapsed = collapsedCategories[catName]
+            const isCollapsed = !!collapsedCategories[catName]
 
             return (
-              <div key={catName} id={`cat-${catName}`} className="space-y-4 scroll-mt-40 transition-all">
-                {/* Category Header */}
+              <div
+                key={catName}
+                id={`cat-${catName}`}
+                className="bg-white rounded-3xl border border-gray-100/90 shadow-sm overflow-hidden transition-all duration-300 scroll-mt-36"
+              >
+                {/* Category Accordion Header Card - No icon/image */}
                 <button
+                  type="button"
                   onClick={() => toggleCategory(catName)}
-                  className="w-full flex items-center justify-between p-4 bg-white hover:bg-gray-50/80 rounded-2xl border border-gray-100 shadow-2xs transition-colors border-none cursor-pointer text-left group"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 bg-white hover:bg-orange-50/20 transition-all border-none cursor-pointer text-left select-none group"
+                  aria-expanded={!isCollapsed}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-black text-sm group-hover:scale-110 transition-transform">
-                      🍗
-                    </div>
-                    <h2 className="text-base sm:text-lg font-black text-gray-900 m-0 group-hover:text-orange-600 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-lg sm:text-xl font-black text-gray-900 m-0 group-hover:text-orange-600 transition-colors tracking-tight">
                       {catName}
                     </h2>
-                    <span className="text-xs font-extrabold text-orange-600 bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200/50">
+                    <span className="text-xs font-black text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-200/60">
                       {catItems.length} {catItems.length === 1 ? 'item' : 'items'}
                     </span>
                   </div>
 
-                  <div className="text-gray-400 group-hover:text-orange-600 transition-colors">
-                    {isCollapsed ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      !isCollapsed
+                        ? 'bg-orange-100 text-orange-600 rotate-180'
+                        : 'bg-gray-100 text-gray-500 rotate-0 group-hover:bg-orange-50 group-hover:text-orange-600'
+                    }`}
+                  >
+                    <ChevronDown size={18} className="stroke-[2.5]" />
                   </div>
                 </button>
 
-                {/* Items Container according to View Mode (Grid vs List) */}
+                {/* Expandable Items Body */}
                 {!isCollapsed && (
-                  <div>
+                  <div className="p-4 sm:p-6 pt-0 sm:pt-0 border-t border-gray-100/80">
                     {viewMode === 'grid' ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 pt-4">
                         {catItems.map((product) => (
                           <ProductGridCard key={product.id} product={product} onSelect={setSelectedProduct} />
                         ))}
                       </div>
                     ) : (
-                      <div className="bg-white rounded-3xl border border-gray-100 shadow-2xs divide-y divide-gray-100 overflow-hidden px-1">
+                      <div className="divide-y divide-gray-100 overflow-hidden pt-1">
                         {catItems.map((product) => (
                           <ProductListCard key={product.id} product={product} onSelect={setSelectedProduct} />
                         ))}

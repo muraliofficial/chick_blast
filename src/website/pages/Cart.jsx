@@ -1,11 +1,28 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Minus, Plus, Trash2, User, Phone, ArrowLeft, Receipt, CheckCircle2, AlertCircle, ShoppingBag } from 'lucide-react'
+import {
+  Plus,
+  Trash2,
+  User,
+  Phone,
+  ArrowLeft,
+  Receipt,
+  CheckCircle2,
+  AlertCircle,
+  ShoppingBag,
+  ShieldCheck,
+  Lock,
+  KeyRound,
+  Send,
+  Sparkles,
+} from 'lucide-react'
 import { useCart } from '../../shared/context/CartContext'
-import { ordersApi } from '../../shared/api'
+import { useCustomer } from '../../shared/context/CustomerContext'
+import { ordersApi, customersApi } from '../../shared/api'
 import SwipeToConfirm from '../../shared/components/SwipeToConfirm'
 import FssaiBadge from '../../shared/components/FssaiBadge'
 import logoImg from '../../assets/logo.png'
+import QuantityControl from '../components/QuantityControl'
 
 export default function Cart() {
   const navigate = useNavigate()
@@ -23,23 +40,133 @@ export default function Cart() {
     setLastOrderId,
   } = useCart()
 
+  const {
+    customer,
+    isLoggedIn,
+    loginCustomer,
+    openAuthModal,
+  } = useCustomer()
+
   const [placing, setPlacing] = useState(false)
   const [error, setError] = useState('')
 
+  // Inline OTP state on cart page when not logged in
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpCode, setOtpCode] = useState('')
+  const [verifyingOtp, setVerifyingOtp] = useState(false)
+  const [otpError, setOtpError] = useState('')
+  const [isExistingCustomer, setIsExistingCustomer] = useState(false)
+  const [needsNameInput, setNeedsNameInput] = useState(false)
+  const [tempName, setTempName] = useState('')
+
+  // Auto-sync customer details when customer is logged in
+  useEffect(() => {
+    if (isLoggedIn && customer) {
+      if (customer.Name || customer.name) {
+        setCustomerName(customer.Name || customer.name)
+      }
+      if (customer.MobileNo || customer.mobile) {
+        setCustomerMobile(customer.MobileNo || customer.mobile)
+      }
+    }
+  }, [isLoggedIn, customer])
+
   const isNameValid = customerName.trim().length > 0
   const isMobileValid = customerMobile.trim().length === 10
-
   const canPlace = items.length > 0 && isNameValid && isMobileValid
+
+  // Handle Send OTP button click on Cart page
+  const handleSendOtp = async () => {
+    if (!isMobileValid || verifyingOtp) return
+    setVerifyingOtp(true)
+    setOtpError('')
+    setError('')
+
+    try {
+      // Check if user is existing or new
+      const checkRes = await customersApi.check(customerMobile)
+      if (checkRes.exists && checkRes.customer) {
+        setIsExistingCustomer(true)
+        if (checkRes.customer.Name || checkRes.customer.name) {
+          setTempName(checkRes.customer.Name || checkRes.customer.name)
+        }
+      } else {
+        setIsExistingCustomer(false)
+      }
+      setOtpSent(true)
+    } catch (err) {
+      // Offline fallback
+      setIsExistingCustomer(false)
+      setOtpSent(true)
+    } finally {
+      setVerifyingOtp(false)
+    }
+  }
+
+  // Handle Verify OTP on Cart page
+  const handleVerifyCartOtp = async (e) => {
+    if (e) e.preventDefault()
+    if (otpCode.trim().length !== 4) {
+      setOtpError('Please enter 4-digit verification code')
+      return
+    }
+
+    setVerifyingOtp(true)
+    setOtpError('')
+
+    try {
+      const payload = {
+        mobileNo: customerMobile,
+        otp: otpCode.trim(),
+        name: isExistingCustomer ? tempName : (customerName.trim() || tempName.trim() || 'Customer'),
+        isNewUser: !isExistingCustomer,
+      }
+
+      // If new user needs to provide name first
+      if (!isExistingCustomer && !customerName.trim() && !tempName.trim()) {
+        setNeedsNameInput(true)
+        setVerifyingOtp(false)
+        return
+      }
+
+      const res = await customersApi.verifyOtp(payload)
+      if (res.success && res.customer) {
+        loginCustomer(res.customer, res.orders || [])
+        const finalName = res.customer.Name || res.customer.name || tempName
+        setCustomerName(finalName)
+        setCustomerMobile(res.customer.MobileNo || res.customer.mobile || customerMobile)
+        setOtpSent(false)
+        setOtpCode('')
+        setNeedsNameInput(false)
+      } else {
+        throw new Error(res.error || 'Invalid verification code.')
+      }
+    } catch (err) {
+      setOtpError(err.message || 'Invalid verification code. Please try again.')
+    } finally {
+      setVerifyingOtp(false)
+    }
+  }
 
   const handlePlaceOrder = async () => {
     if (!canPlace || placing) return
     setPlacing(true)
     setError('')
 
+    const customerDid = customer?.did || customer?.id || ''
+    const currentName = customerName.trim()
+    const currentMobile = customerMobile.trim()
+
     try {
       const order = await ordersApi.create({
-        customerName: customerName.trim(),
-        customerMobile: customerMobile.trim(),
+        customerName: currentName,
+        customerMobile: currentMobile,
+        customerDid,
+        customerDetails: {
+          name: currentName,
+          mobile: currentMobile,
+          customerDid,
+        },
         items: items.map(({ itemId, name, price, quantity, type }) => ({
           itemId,
           name,
@@ -128,24 +255,15 @@ export default function Cart() {
               </div>
 
               {/* Quantity Stepper & Subtotal */}
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="flex items-center bg-white border border-orange-500 rounded-lg p-0.5 shadow-2xs">
-                  <button
-                    onClick={() => updateQuantity(item.itemId, item.quantity - 1)}
-                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-orange-50 text-orange-600 hover:bg-orange-100 active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all"
-                  >
-                    <Minus size={11} className="stroke-[3]" />
-                  </button>
-                  <span className="px-1.5 text-center font-black text-xs text-gray-900 select-none min-w-[16px]">{item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item.itemId, item.quantity + 1)}
-                    className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-orange-500 text-white hover:bg-orange-600 active:scale-90 flex items-center justify-center border-none cursor-pointer transition-all shadow-xs"
-                  >
-                    <Plus size={11} className="stroke-[3]" />
-                  </button>
-                </div>
+              <div className="flex items-center gap-2.5 shrink-0">
+                <QuantityControl
+                  quantity={item.quantity}
+                  onIncrement={() => updateQuantity(item.itemId, item.quantity + 1)}
+                  onDecrement={() => updateQuantity(item.itemId, item.quantity - 1)}
+                  size="sm"
+                />
 
-                <span className="font-black text-xs sm:text-sm text-gray-900 text-right min-w-[38px]">
+                <span className="font-black text-xs sm:text-sm text-gray-900 text-right min-w-[42px]">
                   ₹{(item.price * item.quantity).toFixed(0)}
                 </span>
               </div>
@@ -154,10 +272,15 @@ export default function Cart() {
         </div>
       </div>
 
-      {/* Customer Info Form Card */}
+      {/* Customer Contact Information Card */}
       <div className="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 m-0">Contact Information</h3>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 m-0">
+              Contact Information
+            </h3>
+          </div>
+
           {canPlace && (
             <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
               <CheckCircle2 size={13} /> Ready to Order
@@ -165,41 +288,130 @@ export default function Cart() {
           )}
         </div>
 
-        {/* Customer Name */}
-        <div className="relative">
-          <User size={18} className="absolute left-3.5 top-3.5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Your Full Name"
-            value={customerName}
-            onChange={(e) => {
-              setError('')
-              setCustomerName(e.target.value)
-            }}
-            className="input-field !pl-10 text-sm font-medium"
-          />
-          {isNameValid && (
-            <CheckCircle2 size={16} className="absolute right-3.5 top-3.5 text-emerald-500" />
-          )}
+        {/* 1. Mobile Number Field with Send OTP Button */}
+        <div className="space-y-1">
+          <div className="relative flex items-center">
+            <Phone size={18} className={`absolute left-3.5 top-3.5 ${isLoggedIn ? 'text-gray-700' : 'text-gray-400'}`} />
+            <input
+              type="tel"
+              placeholder="10-digit Mobile Number"
+              value={customerMobile}
+              disabled={isLoggedIn}
+              onChange={(e) => {
+                setError('')
+                setOtpError('')
+                setOtpSent(false)
+                setCustomerMobile(e.target.value.replace(/\D/g, '').slice(0, 10))
+              }}
+              className={`input-field !pl-10 !pr-24 text-sm font-semibold transition-all ${
+                isLoggedIn
+                  ? '!bg-slate-50 !border-gray-200 !text-slate-900 cursor-not-allowed opacity-90'
+                  : ''
+              }`}
+              maxLength={10}
+            />
+
+            {isLoggedIn ? (
+              <div className="absolute right-3.5 top-3.5 flex items-center gap-1 text-xs font-bold text-gray-500">
+                <Lock size={14} className="text-gray-400" />
+                <span className="text-[10px] uppercase font-bold text-gray-400">Locked</span>
+              </div>
+            ) : isMobileValid ? (
+              <button
+                type="button"
+                onClick={handleSendOtp}
+                disabled={verifyingOtp}
+                className="absolute right-2 px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs border-none cursor-pointer shadow-xs transition-transform active:scale-95 flex items-center gap-1"
+              >
+                <Send size={12} />
+                <span>{verifyingOtp ? 'Sending...' : otpSent ? 'Resend' : 'Send OTP'}</span>
+              </button>
+            ) : null}
+          </div>
         </div>
 
-        {/* Mobile Number */}
-        <div className="relative">
-          <Phone size={18} className="absolute left-3.5 top-3.5 text-gray-400" />
-          <input
-            type="tel"
-            placeholder="10-digit Mobile Number"
-            value={customerMobile}
-            onChange={(e) => {
-              setError('')
-              setCustomerMobile(e.target.value.replace(/\D/g, ''))
-            }}
-            className="input-field !pl-10 text-sm font-medium"
-            maxLength={10}
-          />
-          {isMobileValid && (
-            <CheckCircle2 size={16} className="absolute right-3.5 top-3.5 text-emerald-500" />
-          )}
+        {/* 2. Inline OTP Verification Input (When OTP Sent & Not logged in) */}
+        {!isLoggedIn && otpSent && (
+          <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 space-y-2.5 animate-fade-in">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-amber-900 flex items-center gap-1">
+                <KeyRound size={14} className="text-orange-600" />
+                <span>Enter Verification Code</span>
+              </span>
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="tel"
+                maxLength={4}
+                placeholder="Enter 4-digit OTP"
+                value={otpCode}
+                onChange={(e) => {
+                  setOtpError('')
+                  setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 4))
+                }}
+                className="input-field !py-2 text-sm font-black tracking-widest text-center flex-1 bg-white"
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={handleVerifyCartOtp}
+                disabled={verifyingOtp || otpCode.length !== 4}
+                className="btn-primary !px-4 !py-2 !rounded-xl text-xs font-black shrink-0 cursor-pointer"
+              >
+                {verifyingOtp ? 'Verifying...' : 'Verify OTP'}
+              </button>
+            </div>
+
+            {needsNameInput && !isExistingCustomer && (
+              <div className="pt-2 space-y-1">
+                <label className="text-[11px] font-bold text-gray-700 block">
+                  Enter Your Full Name:
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Murali"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  className="input-field !py-2 text-xs font-semibold bg-white"
+                />
+              </div>
+            )}
+
+            {otpError && (
+              <p className="text-xs text-red-600 font-bold m-0">{otpError}</p>
+            )}
+          </div>
+        )}
+
+        {/* 3. Customer Name Field */}
+        <div className="space-y-1">
+          <div className="relative">
+            <User size={18} className={`absolute left-3.5 top-3.5 ${isLoggedIn ? 'text-gray-700' : 'text-gray-400'}`} />
+            <input
+              type="text"
+              placeholder="Your Full Name"
+              value={customerName}
+              disabled={isLoggedIn}
+              onChange={(e) => {
+                setError('')
+                setCustomerName(e.target.value)
+              }}
+              className={`input-field !pl-10 text-sm font-semibold transition-all ${
+                isLoggedIn
+                  ? '!bg-slate-50 !border-gray-200 !text-slate-900 cursor-not-allowed opacity-90'
+                  : ''
+              }`}
+            />
+            {isLoggedIn ? (
+              <div className="absolute right-3.5 top-3.5 flex items-center gap-1 text-xs font-bold text-gray-500">
+                <Lock size={14} className="text-gray-400" />
+                <span className="text-[10px] uppercase font-bold text-gray-400">Locked</span>
+              </div>
+            ) : isNameValid ? (
+              <CheckCircle2 size={16} className="absolute right-3.5 top-3.5 text-emerald-500" />
+            ) : null}
+          </div>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import { getDb, FieldValue } from '../../config/firebase.js'
+import { appendOrderToCustomer } from '../customers/model.js'
 
 export const ORDER_STATUSES = {
   NEW: 'new',
@@ -70,13 +71,26 @@ export async function createOrderInDb(orderData) {
   const isoNow = new Date().toISOString()
   const customId = `ord-${orderDate.replace(/-/g, '')}-${orderNo}`
 
+  const cName = orderData.customerName || orderData.customerDetails?.name || ''
+  const cMobile = orderData.customerMobile || orderData.customerDetails?.mobile || ''
+  const cDid = orderData.customerDid || orderData.customerDetails?.customerDid || ''
+
+  const customerDetails = {
+    name: cName,
+    mobile: cMobile,
+    customerDid: cDid,
+  }
+
   if (!db) {
     const order = {
       id: customId,
       orderNo,
       orderDate,
-      customerName: orderData.customerName,
-      customerMobile: orderData.customerMobile,
+      customerName: cName,
+      customerMobile: cMobile,
+      customerDid: cDid,
+      customerDetails,
+      CustomerDetails: customerDetails,
       items: orderData.items,
       totalAmount: orderData.totalAmount,
       status: ORDER_STATUSES.NEW,
@@ -85,6 +99,7 @@ export async function createOrderInDb(orderData) {
       updatedAt: isoNow,
     }
     memoryOrders.unshift(order)
+    appendOrderToCustomer(cDid || cMobile, order)
     return order
   }
 
@@ -92,8 +107,11 @@ export async function createOrderInDb(orderData) {
   const order = {
     orderNo,
     orderDate,
-    customerName: orderData.customerName,
-    customerMobile: orderData.customerMobile,
+    customerName: cName,
+    customerMobile: cMobile,
+    customerDid: cDid,
+    customerDetails,
+    CustomerDetails: customerDetails,
     items: orderData.items,
     totalAmount: orderData.totalAmount,
     status: ORDER_STATUSES.NEW,
@@ -106,7 +124,9 @@ export async function createOrderInDb(orderData) {
   await docRef.set(order)
   invalidateActiveOrdersCache()
   const created = await docRef.get()
-  return serializeDoc(created)
+  const serialized = serializeDoc(created)
+  appendOrderToCustomer(cDid || cMobile, serialized)
+  return serialized
 }
 
 let activeOrdersCache = null

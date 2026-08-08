@@ -72,12 +72,25 @@ export default function ConfirmModal({
           : 'bg-slate-950/0 backdrop-blur-none opacity-0 pointer-events-none'
       }`}
       onClick={loading ? undefined : onClose}
+      onWheel={(e) => {
+        if (e.target === e.currentTarget) {
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      }}
+      onTouchMove={(e) => {
+        if (e.target === e.currentTarget) {
+          e.preventDefault()
+          e.stopPropagation()
+        }
+      }}
     >
       <div
         className={`w-full max-w-sm sm:max-w-md bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-gray-100 space-y-5 transition-all duration-200 ease-out transform ${
           active ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'
         }`}
         onClick={(e) => e.stopPropagation()}
+        onWheel={(e) => e.stopPropagation()}
       >
         {/* Top Header & Close Icon */}
         <div className="flex items-start justify-between gap-3">
